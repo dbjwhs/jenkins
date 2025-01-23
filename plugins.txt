@@ -1,0 +1,14 @@
+configuration-as-code:latest
+job-dsl:latest
+workflow-aggregator:latest
+docker-workflow:latest
+git:latest
+blueocean:latest
+docker-plugin:latest
+matrix-auth:latest
+nodejs:latest
+checkstyle:latest
+cobertura:latest
+junit:latest
+pipeline-utility-steps:latest
+dashboard-view:latest
