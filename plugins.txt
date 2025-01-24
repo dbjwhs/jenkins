@@ -6,8 +6,10 @@ git:latest
 blueocean:latest
 docker-plugin:latest
 matrix-auth:latest
+
+# Node.js and JavaScript specific plugins
 nodejs:latest
-checkstyle:latest
+warnings-ng:latest
 cobertura:latest
 junit:latest
 pipeline-utility-steps:latest
