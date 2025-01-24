@@ -1,6 +1,6 @@
 # Basic Setup Tutorial for Jenkins on MacBook Pro with Docker
 
-This guide explains how to set up Jenkins with Docker containers and JavaScript configuration on a MacBook Pro.
+Simple example of how to configure Jenkins with Docker and JavaScript on your MacBook Pro.
 
 ## Prerequisites
 `Docker Desktop`
