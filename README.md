@@ -132,7 +132,7 @@ docker-compose up -d
 ```
 
 3. Access Jenkins:
-- Open browser: `http://localhost:8080`
+- Open browser: [http://localhost:8080](http://localhost:8080)
 - Login with:
   - Username: admin
   - Password: admin
