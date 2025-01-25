@@ -1,42 +1,44 @@
 pipeline {
     agent { docker { image 'python:3.9' } }
     parameters {
-        string(name: 'MESSAGE', defaultValue: 'Hello World', description: 'Message to print')
-        choice(name: 'LANGUAGE', choices: ['English', 'Spanish', 'French'], description: 'Message language')
+        string(name: 'NAME', defaultValue: 'World', description: 'Name to greet')
+        choice(name: 'LANGUAGE', choices: ['English', 'Spanish', 'French', 'German', 'Italian'], description: 'Language')
     }
     stages {
-        stage('Run Test') {
+        stage('Test') {
             steps {
                 writeFile file: 'translator.py', text: '''
 translations = {
-    'English': {'hello': 'Hello'},
-    'Spanish': {'hello': 'Hola'},
-    'French': {'hello': 'Bonjour'}
+    'English': 'Hello',
+    'Spanish': 'Hola',
+    'French': 'Bonjour',
+    'German': 'Hallo',
+    'Italian': 'Ciao'
 }
 
-def translate(message, language):
-    base = translations[language]['hello']
-    return f"{base} {message} from Python!"
+def greet(name, language):
+    greeting = translations.get(language, 'Hello')
+    return f"{greeting} {name}!"
 '''
                 writeFile file: 'test_translator.py', text: '''
 import unittest
 import os
-from translator import translate
+from translator import greet, translations
 
 class TestTranslator(unittest.TestCase):
-    def test_translation(self):
-        message = os.getenv('MESSAGE', 'World')
+    def test_greetings(self):
+        name = os.getenv('NAME', 'World')
         language = os.getenv('LANGUAGE', 'English')
-        result = translate(message, language)
-        self.assertTrue(result.endswith('from Python!'))
-        self.assertTrue(message in result)
+        result = greet(name, language)
+        self.assertTrue(translations[language] in result)
+        self.assertTrue(name in result)
 
 if __name__ == '__main__':
     unittest.main()
 '''
-                withEnv(["MESSAGE=${params.MESSAGE}", "LANGUAGE=${params.LANGUAGE}"]) {
+                withEnv(["NAME=${params.NAME}", "LANGUAGE=${params.LANGUAGE}"]) {
                     sh 'python -m unittest test_translator.py -v'
-                    sh "python -c 'from translator import translate; print(translate(\"${params.MESSAGE}\", \"${params.LANGUAGE}\"))'"
+                    sh "python -c 'from translator import greet; print(greet(\"${params.NAME}\", \"${params.LANGUAGE}\"))'"
                 }
             }
         }
