@@ -1,30 +1,19 @@
-# Basic Setup Tutorial for Jenkins on MacBook Pro with Docker
+# Jenkins CI/CD Setup with Docker and Python Tests
 
-Simple example of how to configure Jenkins with Docker and JavaScript on your MacBook Pro.
-
-## Prerequisites
-`Docker Desktop`
-
-https://www.docker.com/
-
-`Docker Compose`
-```shell
-brew install docker-compose
-```
-
-## Directory Structure
-```
+## Directory Setup
+```bash
 jenkins-setup/
 ├── Dockerfile
 ├── docker-compose.yml
 ├── jenkins.yaml
-└── plugins.txt
+├── plugins.txt
+└── Jenkinsfile
 ```
 
-## Docker Compose Configuration
-`docker-compose.yml`:
+## File Contents
+
+### docker-compose.yml
 ```yaml
-version: '3.8'
 services:
   jenkins:
     build:
@@ -36,11 +25,12 @@ services:
     volumes:
       - jenkins_home:/var/jenkins_home
       - /var/run/docker.sock:/var/run/docker.sock
-      - ./jenkins.yaml:/var/jenkins_home/jenkins.yaml
+    group_add:
+      - "998"
+    user: root
+    restart: always
     networks:
       - jenkins-network
-    environment:
-      - CASC_JENKINS_CONFIG=/var/jenkins_home/jenkins.yaml
 
 networks:
   jenkins-network:
@@ -50,37 +40,48 @@ volumes:
   jenkins_home:
 ```
 
-## Dockerfile Configuration
+### Dockerfile
 ```dockerfile
 FROM jenkins/jenkins:lts
 
-# Switch to root to install additional packages
 USER root
 
-# Install Docker and other necessary tools
 RUN apt-get update && \
-    apt-get install -y apt-transport-https ca-certificates curl gnupg2 software-properties-common
+    apt-get install -y \
+    ca-certificates \
+    curl \
+    gnupg \
+    lsb-release && \
+    mkdir -p /etc/apt/keyrings && \
+    curl -fsSL https://download.docker.com/linux/debian/gpg | gpg --dearmor -o /etc/apt/keyrings/docker.gpg && \
+    echo \
+    "deb [arch=$(dpkg --print-architecture) signed-by=/etc/apt/keyrings/docker.gpg] https://download.docker.com/linux/debian \
+    $(lsb_release -cs) stable" | tee /etc/apt/sources.list.d/docker.list > /dev/null && \
+    apt-get update && \
+    apt-get install -y docker-ce-cli
 
-# Switch back to jenkins user
 USER jenkins
 
-# Copy the plugins.txt file
 COPY plugins.txt /usr/share/jenkins/ref/plugins.txt
-# Copy the jenkins.yaml configuration file
 COPY jenkins.yaml /var/jenkins_home/jenkins.yaml
 
-# Install plugins
 RUN jenkins-plugin-cli -f /usr/share/jenkins/ref/plugins.txt
 ```
 
-## Jenkins Configuration (jenkins.yaml)
+### plugins.txt
+```text
+configuration-as-code:latest
+job-dsl:latest
+workflow-job:latest
+workflow-cps:latest
+git:latest
+workflow-multibranch:latest
+```
+
+### jenkins.yaml
 ```yaml
 jenkins:
   systemMessage: "Jenkins configured using JCasC"
-  numExecutors: 2
-  scmCheckoutRetryCount: 2
-  mode: NORMAL
-  
   securityRealm:
     local:
       allowsSignup: false
@@ -92,83 +93,74 @@ jenkins:
     loggedInUsersCanDoAnything:
       allowAnonymousRead: false
 
-  clouds:
-    - docker:
-        name: "docker"
-        dockerApi:
-          dockerHost:
-            uri: "unix:///var/run/docker.sock"
+  remotingSecurity:
+    enabled: true
 ```
 
-## Essential Plugins (plugins.txt)
-```text
-configuration-as-code:latest
-job-dsl:latest
-workflow-aggregator:latest
-docker-workflow:latest
-git:latest
-blueocean:latest
-docker-plugin:latest
-matrix-auth:latest
+### Jenkinsfile
+```groovy
+pipeline {
+    agent { docker { image 'python:3.9' } }
+    parameters {
+        string(name: 'NAME', defaultValue: 'World', description: 'Name to greet')
+        choice(name: 'LANGUAGE', choices: ['English', 'Spanish', 'French', 'German', 'Italian'], description: 'Language')
+        booleanParam(name: 'FORMAL', defaultValue: false, description: 'Use formal greeting')
+    }
+    stages {
+        stage('Test') {
+            steps {
+                writeFile file: 'translator.py', text: '''
+translations = {
+    'English': {'informal': 'Hello', 'formal': 'Good day'},
+    'Spanish': {'informal': 'Hola', 'formal': 'Buenos días'},
+    'French': {'informal': 'Salut', 'formal': 'Bonjour'},
+    'German': {'informal': 'Hallo', 'formal': 'Guten Tag'},
+    'Italian': {'informal': 'Ciao', 'formal': 'Buongiorno'}
+}
 
-# Node.js and JavaScript specific plugins
-nodejs:latest
-checkstyle:latest
-cobertura:latest
-junit:latest
-pipeline-utility-steps:latest
-dashboard-view:latest
-warnings-ng:latest
+def greet(name, language, formal=False):
+    style = 'formal' if formal else 'informal'
+    greeting = translations[language][style]
+    return f"{greeting}, {name}!"
+'''
+                writeFile file: 'test_translator.py', text: '''
+import unittest
+import os
+from translator import greet, translations
+
+class TestTranslator(unittest.TestCase):
+    def test_greeting_style(self):
+        name = os.getenv('NAME', 'World')
+        language = os.getenv('LANGUAGE', 'English')
+        formal = os.getenv('FORMAL', 'False').lower() == 'true'
+        result = greet(name, language, formal)
+        style = 'formal' if formal else 'informal'
+        self.assertTrue(translations[language][style] in result)
+
+if __name__ == '__main__':
+    unittest.main()
+'''
+                withEnv(["NAME=${params.NAME}", "LANGUAGE=${params.LANGUAGE}", "FORMAL=${params.FORMAL}"]) {
+                    sh 'python -m unittest test_translator.py -v'
+                    sh '''python -c "from translator import greet; print(greet('${NAME}', '${LANGUAGE}', False))"'''
+                }
+            }
+        }
+    }
+}
 ```
 
-## Installation Steps
+## Quick Start
+1. Create files with above contents
+2. Run: `docker-compose up -d`
+3. Access: http://localhost:8080
+4. Login: admin/admin
 
-1. Create all the files in a directory according to the structure above
-
-2. Build and start Jenkins:
-```bash
-docker-compose build
-docker-compose up -d
-```
-
-3. Access Jenkins:
-- Open browser: [http://localhost:8080](http://localhost:8080)
-- Login with:
-  - Username: admin
-  - Password: admin
-
-## Plugin Categories and Their Uses
-
-### Node.js Development
-- `nodejs`: Manages Node.js installations
-- `npm`: Enhanced npm support
-
-### Code Quality
-- `checkstyle`: For ESLint reports
-- `cobertura`: Code coverage reporting
-- `sonarqube-scanner`: For SonarQube integration
-- `warnings-ng`: Enhanced warning parsers for ESLint, Jest, etc.
-
-### Testing & Reporting
-- `junit`: For test result visualization
-- `test-results-analyzer`: Advanced test result analysis
-- `timestamper`: Adds timestamps to console output
-
-### Pipeline Utilities
-- `pipeline-utility-steps`: Additional pipeline steps
-- `credentials`: Manages credentials
-- `credentials-binding`: Use credentials in pipelines
-
-### UI & Visualization
-- `dashboard-view`: Create custom dashboard views
-- `build-monitor-plugin`: Large screen build monitor
-
-## Security Note
-Remember to change the default admin password after first login for production environments.
-
-## Additional Resources
-- [Jenkins Documentation](https://www.jenkins.io/doc/)
-- [Jenkins Configuration as Code](https://jenkins.io/projects/jcasc/)
-- [Docker Documentation](https://docs.docker.com/)
-
-This setup provides a solid foundation for running JavaScript tests in Docker containers with Jenkins as the CI/CD controller.
+## Features
+- Containerized Jenkins
+- Python test automation
+- Multi-language greetings
+- Formal/informal options
+- Parameterized builds
+- Docker-in-Docker support
+- Automated testing
