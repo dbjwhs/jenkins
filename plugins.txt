@@ -3,14 +3,15 @@ job-dsl:latest
 workflow-aggregator:latest
 docker-workflow:latest
 git:latest
-blueocean:latest
-docker-plugin:latest
-matrix-auth:latest
-
-# Node.js and JavaScript specific plugins
-nodejs:latest
-warnings-ng:latest
-cobertura:latest
-junit:latest
+workflow-job:latest
+workflow-cps:latest
+script-security:latest
 pipeline-utility-steps:latest
 dashboard-view:latest
+warnings-ng:latest
+workflow-multibranch:latest
+configuration-as-code:latest
+job-dsl:latest
+workflow-job:latest
+workflow-cps:latest
+git:latest

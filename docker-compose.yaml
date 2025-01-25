@@ -9,12 +9,12 @@ services:
     volumes:
       - jenkins_home:/var/jenkins_home
       - /var/run/docker.sock:/var/run/docker.sock
-      # Add a bind mount for the configuration
-      - ./jenkins.yaml:/var/jenkins_home/jenkins.yaml
+    group_add:
+      - "998"
+    user: root
+    restart: always
     networks:
       - jenkins-network
-    environment:
-      - CASC_JENKINS_CONFIG=/var/jenkins_home/jenkins.yaml
 
 networks:
   jenkins-network:

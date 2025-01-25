@@ -1,9 +1,5 @@
 jenkins:
   systemMessage: "Jenkins configured using JCasC"
-  numExecutors: 2
-  scmCheckoutRetryCount: 2
-  mode: NORMAL
-  
   securityRealm:
     local:
       allowsSignup: false
@@ -15,9 +11,31 @@ jenkins:
     loggedInUsersCanDoAnything:
       allowAnonymousRead: false
 
-  clouds:
-    - docker:
-        name: "docker"
-        dockerApi:
-          dockerHost:
-            uri: "unix:///var/run/docker.sock"
+  remotingSecurity:
+    enabled: true
+
+credentials:
+  system:
+    domainCredentials:
+      - credentials:
+          - usernamePassword:
+              scope: GLOBAL
+              id: "github-creds"
+
+jobs:
+  - script: >
+      pipelineJob('python-hello-world') {
+        definition {
+          cpsScm {
+            scm {
+              git {
+                remote {
+                  url('YOUR_GITHUB_REPO_URL')
+                }
+                branch('*/main')
+              }
+            }
+            scriptPath('Jenkinsfile')
+          }
+        }
+      }
