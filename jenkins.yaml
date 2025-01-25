@@ -30,7 +30,7 @@ jobs:
             scm {
               git {
                 remote {
-                  url('YOUR_GITHUB_REPO_URL')
+                  url('https://github.com/dbjwhs/jenkins')
                 }
                 branch('*/main')
               }
