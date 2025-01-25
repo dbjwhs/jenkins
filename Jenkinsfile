@@ -42,7 +42,9 @@ if __name__ == '__main__':
                 withEnv(["NAME=${params.NAME}", "LANGUAGE=${params.LANGUAGE}", "FORMAL=${params.FORMAL}"]) {
                     sh 'python -m unittest test_translator.py -v'
                     sh """
+                        python -c 'from translator import greet; print(greet(\"${params.NAME}\", \"${params.LANGUAGE}\"))'
                         python -c 'from translator import greet; print(greet(\"${params.NAME}\", \"${params.LANGUAGE}\", False))'
+                        python -c 'from translator import greet; print(greet(\"${params.NAME}\", \"${params.LANGUAGE}\", True))'
                     """
                 }
             }
