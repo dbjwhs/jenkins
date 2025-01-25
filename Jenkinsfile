@@ -31,7 +31,7 @@ class TestTranslator(unittest.TestCase):
     def test_greeting_style(self):
         name = os.getenv('NAME', 'World')
         language = os.getenv('LANGUAGE', 'English')
-        formal = os.getenv('FORMAL', 'false').lower() == 'true'
+        formal = os.getenv('FORMAL', 'False').lower() == 'true'
         result = greet(name, language, formal)
         style = 'formal' if formal else 'informal'
         self.assertTrue(translations[language][style] in result)
@@ -41,7 +41,9 @@ if __name__ == '__main__':
 '''
                 withEnv(["NAME=${params.NAME}", "LANGUAGE=${params.LANGUAGE}", "FORMAL=${params.FORMAL}"]) {
                     sh 'python -m unittest test_translator.py -v'
-                    sh "python -c 'from translator import greet; print(greet(\"${params.NAME}\", \"${params.LANGUAGE}\", ${params.FORMAL}))'"
+                    sh """
+                        python -c 'from translator import greet; print(greet(\"${params.NAME}\", \"${params.LANGUAGE}\", False))'
+                    """
                 }
             }
         }
