@@ -4,8 +4,8 @@ jenkins:
     local:
       allowsSignup: false
       users:
-        - id: "admin"
-          password: "admin"
+        - id: "dbjwhs"
+          password: "jenkins"
 
   authorizationStrategy:
     loggedInUsersCanDoAnything:
