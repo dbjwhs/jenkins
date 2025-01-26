@@ -1,5 +1,9 @@
 jenkins:
   systemMessage: "Jenkins configured using JCasC"
+  noUsageStatistics: true
+  primaryView:
+    all:
+      name: "all"
   securityRealm:
     local:
       allowsSignup: false
