@@ -154,7 +154,7 @@ if __name__ == '__main__':
 1. Create files with above contents
 2. Run: `docker-compose up -d`
 3. Access: http://localhost:8080
-4. Login: admin/admin
+4. Login: dbjwhs/jenkins
 
 ## Features
 - Containerized Jenkins
