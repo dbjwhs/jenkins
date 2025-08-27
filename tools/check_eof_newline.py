@@ -265,8 +265,9 @@ Examples:
     script_path = Path(__file__).resolve()
     project_root = script_path.parent.parent
     
-    if not (project_root / "CMakeLists.txt").exists():
-        print(f"Error: Project root not found. Expected CMakeLists.txt at {project_root}")
+    # Check for Git repo or CMake project
+    if not ((project_root / ".git").exists() or (project_root / "CMakeLists.txt").exists()):
+        print(f"Error: Project root not found. Expected .git or CMakeLists.txt at {project_root}")
         sys.exit(1)
     
     checker = EOFNewlineChecker(project_root)

@@ -1,0 +1,13 @@
+# MIT License
+# Copyright (c) 2025 dbjwhs
+
+# Backup files from EOF newline checker
+*.bak
+
+# Temporary files
+*.tmp
+*.temp
+
+# OS files
+.DS_Store
+Thumbs.db
