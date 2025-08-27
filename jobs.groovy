@@ -580,7 +580,7 @@ pipelineJob('cpp-projects/cpp-snippets-build') {
                         stage('Build All Snippets') {
                             agent {
                                 docker {
-                                    image 'ubuntu:22.04'
+                                    image 'ubuntu:24.04'
                                     reuseNode true
                                     args '--user root'
                                 }
@@ -588,7 +588,28 @@ pipelineJob('cpp-projects/cpp-snippets-build') {
                             steps {
                                 sh """
                                     apt-get update
-                                    apt-get install -y cmake build-essential git pkg-config
+                                    apt-get install -y \\
+                                        wget \\
+                                        build-essential \\
+                                        gcc-13 g++-13 \\
+                                        git \\
+                                        pkg-config \\
+                                        bc \\
+                                        libssl-dev
+                                    
+                                    # Set GCC 13 as default for C++23 support
+                                    update-alternatives --install /usr/bin/gcc gcc /usr/bin/gcc-13 100
+                                    update-alternatives --install /usr/bin/g++ g++ /usr/bin/g++-13 100
+                                    
+                                    # Install latest CMake from official repository
+                                    wget -O - https://apt.kitware.com/keys/kitware-archive-latest.asc 2>/dev/null | gpg --dearmor - | tee /usr/share/keyrings/kitware-archive-keyring.gpg >/dev/null
+                                    echo 'deb [signed-by=/usr/share/keyrings/kitware-archive-keyring.gpg] https://apt.kitware.com/ubuntu/ noble main' | tee /etc/apt/sources.list.d/kitware.list >/dev/null
+                                    apt-get update
+                                    apt-get install -y cmake
+                                    
+                                    # Verify versions
+                                    cmake --version
+                                    g++ --version
                                 """
                                 script {
                                     sh """
