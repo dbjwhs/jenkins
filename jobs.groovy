@@ -567,12 +567,12 @@ pipelineJob('cpp-projects/cpp-snippets-build') {
                                     git branch: params.BRANCH, url: params.GIT_REPO_URL
                                     
                                     // Verify this is the cpp-snippets project
-                                    if (!fileExists('tools/build_all.sh')) {
-                                        error('tools/build_all.sh not found - this does not appear to be the cpp-snippets project')
+                                    if (!fileExists('tooling/build_all.sh')) {
+                                        error('tooling/build_all.sh not found - this does not appear to be the cpp-snippets project')
                                     }
                                     
                                     echo 'Confirmed: This is the cpp-snippets project'
-                                    sh 'ls -la tools/'
+                                    sh 'ls -la tooling/'
                                 }
                             }
                         }
@@ -593,10 +593,10 @@ pipelineJob('cpp-projects/cpp-snippets-build') {
                                 script {
                                     sh """
                                         echo "Making build_all.sh executable..."
-                                        chmod +x tools/build_all.sh
+                                        chmod +x tooling/build_all.sh
                                         
                                         echo "Running build_all.sh script..."
-                                        cd tools
+                                        cd tooling
                                         ./build_all.sh
                                     """
                                 }
@@ -628,7 +628,7 @@ pipelineJob('cpp-projects/cpp-snippets-build') {
                         }
                         success {
                             echo "✅ cpp-snippets build completed successfully!"
-                            echo "Build script: tools/build_all.sh"
+                            echo "Build script: tooling/build_all.sh"
                             echo "Repository: ${params.GIT_REPO_URL}"
                             echo "Branch: ${params.BRANCH}"
                         }
