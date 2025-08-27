@@ -1,3 +1,6 @@
+// MIT License
+// Copyright (c) 2025 dbjwhs
+
 import jenkins.model.*
 import java.util.logging.Logger
 

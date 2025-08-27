@@ -10,8 +10,10 @@ pipeline-utility-steps:latest
 dashboard-view:latest
 warnings-ng:latest
 workflow-multibranch:latest
-configuration-as-code:latest
-job-dsl:latest
-workflow-job:latest
-workflow-cps:latest
-git:latest
+credentials:latest
+credentials-binding:latest
+github:latest
+github-branch-source:latest
+build-timeout:latest
+timestamper:latest
+ws-cleanup:latest

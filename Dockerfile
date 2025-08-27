@@ -1,3 +1,6 @@
+# MIT License
+# Copyright (c) 2025 dbjwhs
+
 FROM jenkins/jenkins:lts
 
 # Switch to root to install additional packages

@@ -1,3 +1,6 @@
+// MIT License
+// Copyright (c) 2025 dbjwhs
+
 folder('python-pipelines') {
     description('Python pipelines')
 }
