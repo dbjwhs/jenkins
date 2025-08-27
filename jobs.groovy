@@ -438,7 +438,7 @@ pipelineJob('cpp-projects/inference-systems-lab-build') {
                         
                         stage('Run Tests') {
                             when {
-                                params.RUN_TESTS == true
+                                expression { params.RUN_TESTS == true }
                             }
                             agent {
                                 docker {
