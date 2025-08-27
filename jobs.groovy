@@ -228,6 +228,68 @@ pipelineJob('example-jobs/nodejs-app-test') {
     }
 }
 
+// Simple test version for debugging
+pipelineJob('example-jobs/simple-inference-test') {
+    description('Simple test version of inference systems lab build')
+    parameters {
+        stringParam('LOCAL_PROJECT_PATH', '/Users/dbjones/ng/dbjwhs/inference-systems-lab', 'Local path to the project')
+        choiceParam('BUILD_TYPE', ['Release', 'Debug'], 'CMake build type')
+    }
+    definition {
+        cps {
+            script('''
+                pipeline {
+                    agent any
+                    
+                    stages {
+                        stage('Setup Project') {
+                            steps {
+                                script {
+                                    if (fileExists(params.LOCAL_PROJECT_PATH)) {
+                                        echo "Found project at: ${params.LOCAL_PROJECT_PATH}"
+                                        sh "cp -r '${params.LOCAL_PROJECT_PATH}' ./inference-systems-lab"
+                                    } else {
+                                        error('Local project path not found')
+                                    }
+                                }
+                            }
+                        }
+                        
+                        stage('Verify Project') {
+                            steps {
+                                dir('inference-systems-lab') {
+                                    script {
+                                        if (fileExists('CMakeLists.txt')) {
+                                            echo 'CMakeLists.txt found - this is a CMake project'
+                                            def cmakeContent = readFile('CMakeLists.txt')
+                                            if (cmakeContent.contains('InferenceSystemsLab')) {
+                                                echo 'Confirmed: This is the Inference Systems Lab project'
+                                            } else {
+                                                echo 'Warning: Project name not found in CMakeLists.txt'
+                                            }
+                                        } else {
+                                            error('CMakeLists.txt not found')
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                        
+                        stage('List Contents') {
+                            steps {
+                                dir('inference-systems-lab') {
+                                    sh 'ls -la'
+                                    sh 'head -20 CMakeLists.txt'
+                                }
+                            }
+                        }
+                    }
+                }
+            ''')
+        }
+    }
+}
+
 folder('cpp-projects') {
     description('C++ projects using CMake')
 }
