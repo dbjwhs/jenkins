@@ -105,12 +105,12 @@ pipelineJob('test-repositories/generic-test-pipeline') {
                                         }
                                     }
                                     steps {
-                                        sh '''
+                                        sh """
                                             pip install --upgrade pip
                                             if [ -f requirements.txt ]; then pip install -r requirements.txt; fi
                                             if [ -f pyproject.toml ]; then pip install -e .; fi
                                             python -m pytest --junit-xml=test-results.xml || true
-                                        '''
+                                        """
                                     }
                                     post {
                                         always {
@@ -299,7 +299,7 @@ pipelineJob('cpp-projects/inference-systems-lab-build') {
                                 }
                             }
                             steps {
-                                sh '''
+                                sh """
                                     apt-get update
                                     apt-get install -y \\
                                         cmake \\
@@ -329,7 +329,7 @@ pipelineJob('cpp-projects/inference-systems-lab-build') {
                                     cmake --version
                                     g++ --version
                                     ninja --version
-                                '''
+                                """
                             }
                         }
                         
@@ -386,7 +386,7 @@ pipelineJob('cpp-projects/inference-systems-lab-build') {
                                     script {
                                         def buildDir = "build-${params.BUILD_TYPE.toLowerCase()}"
                                         dir(buildDir) {
-                                            sh 'cmake --build . --parallel ${CMAKE_BUILD_PARALLEL_LEVEL:-4}'
+                                            sh "cmake --build . --parallel \\${CMAKE_BUILD_PARALLEL_LEVEL:-4}"
                                         }
                                     }
                                 }
@@ -409,15 +409,15 @@ pipelineJob('cpp-projects/inference-systems-lab-build') {
                                     script {
                                         def buildDir = "build-${params.BUILD_TYPE.toLowerCase()}"
                                         dir(buildDir) {
-                                            sh '''
+                                            sh """
                                                 echo "Running CTest..."
-                                                ctest --output-on-failure --parallel ${CTEST_PARALLEL_LEVEL:-4} || true
+                                                ctest --output-on-failure --parallel \${CTEST_PARALLEL_LEVEL:-4} || true
                                                 
                                                 echo "Test results:"
                                                 if [ -f Testing/Temporary/LastTest.log ]; then
                                                     tail -20 Testing/Temporary/LastTest.log
                                                 fi
-                                            '''
+                                            """
                                         }
                                     }
                                 }
