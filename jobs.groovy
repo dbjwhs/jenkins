@@ -393,7 +393,7 @@ pipelineJob('cpp-projects/inference-systems-lab-build') {
                             steps {
                                 sh """
                                     apt-get update
-                                    apt-get install -y cmake build-essential git libcapnp-dev capnproto
+                                    apt-get install -y cmake build-essential git pkg-config libcapnp-dev capnproto
                                 """
                                 script {
                                     def buildDir = "build-${params.BUILD_TYPE.toLowerCase()}"
@@ -435,7 +435,7 @@ pipelineJob('cpp-projects/inference-systems-lab-build') {
                             steps {
                                 sh """
                                     apt-get update
-                                    apt-get install -y cmake build-essential git libcapnp-dev capnproto
+                                    apt-get install -y cmake build-essential git pkg-config libcapnp-dev capnproto
                                 """
                                 script {
                                     def buildDir = "build-${params.BUILD_TYPE.toLowerCase()}"
@@ -460,7 +460,7 @@ pipelineJob('cpp-projects/inference-systems-lab-build') {
                             steps {
                                 sh """
                                     apt-get update
-                                    apt-get install -y cmake build-essential git libcapnp-dev capnproto
+                                    apt-get install -y cmake build-essential git pkg-config libcapnp-dev capnproto
                                 """
                                 script {
                                     def buildDir = "build-${params.BUILD_TYPE.toLowerCase()}"
