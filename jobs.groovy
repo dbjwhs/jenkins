@@ -553,7 +553,7 @@ pipelineJob('cpp-projects/cpp-snippets-build') {
                     stages {
                         stage('Clean Workspace') {
                             when {
-                                params.CLEAN_WORKSPACE == true
+                                expression { params.CLEAN_WORKSPACE == true }
                             }
                             steps {
                                 cleanWs()
