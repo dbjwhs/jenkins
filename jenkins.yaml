@@ -28,18 +28,4 @@ credentials:
 
 jobs:
   - script: >
-      pipelineJob('python-hello-world') {
-        definition {
-          cpsScm {
-            scm {
-              git {
-                remote {
-                  url('https://github.com/dbjwhs/jenkins')
-                }
-                branch('*/main')
-              }
-            }
-            scriptPath('Jenkinsfile')
-          }
-        }
-      }
+      evaluate(new File('/var/jenkins_home/jobs.groovy').text)
