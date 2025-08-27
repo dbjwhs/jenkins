@@ -530,3 +530,114 @@ pipelineJob('cpp-projects/inference-systems-lab-build') {
         }
     }
 }
+
+pipelineJob('cpp-projects/cpp-snippets-build') {
+    description('Build and test the C++ Snippets collection using build_all.sh script')
+    parameters {
+        stringParam('GIT_REPO_URL', 'https://github.com/dbjwhs/cpp-snippets.git', 'Git repository URL')
+        stringParam('BRANCH', 'main', 'Branch to checkout')
+        booleanParam('CLEAN_WORKSPACE', true, 'Clean workspace before build')
+    }
+    definition {
+        cps {
+            script('''
+                pipeline {
+                    agent any
+                    
+                    options {
+                        timeout(time: 45, unit: 'MINUTES')
+                        timestamps()
+                        buildDiscarder(logRotator(numToKeepStr: '15'))
+                    }
+                    
+                    stages {
+                        stage('Clean Workspace') {
+                            when {
+                                params.CLEAN_WORKSPACE == true
+                            }
+                            steps {
+                                cleanWs()
+                            }
+                        }
+                        
+                        stage('Checkout Project') {
+                            steps {
+                                script {
+                                    echo "Cloning from Git: ${params.GIT_REPO_URL}"
+                                    git branch: params.BRANCH, url: params.GIT_REPO_URL
+                                    
+                                    // Verify this is the cpp-snippets project
+                                    if (!fileExists('tools/build_all.sh')) {
+                                        error('tools/build_all.sh not found - this does not appear to be the cpp-snippets project')
+                                    }
+                                    
+                                    echo 'Confirmed: This is the cpp-snippets project'
+                                    sh 'ls -la tools/'
+                                }
+                            }
+                        }
+                        
+                        stage('Build All Snippets') {
+                            agent {
+                                docker {
+                                    image 'ubuntu:22.04'
+                                    reuseNode true
+                                    args '--user root'
+                                }
+                            }
+                            steps {
+                                sh """
+                                    apt-get update
+                                    apt-get install -y cmake build-essential git pkg-config
+                                """
+                                script {
+                                    sh """
+                                        echo "Making build_all.sh executable..."
+                                        chmod +x tools/build_all.sh
+                                        
+                                        echo "Running build_all.sh script..."
+                                        cd tools
+                                        ./build_all.sh
+                                    """
+                                }
+                            }
+                        }
+                        
+                        stage('Archive Build Results') {
+                            steps {
+                                script {
+                                    // Archive any build artifacts or logs
+                                    archiveArtifacts artifacts: '**/build/**', allowEmptyArchive: true
+                                    archiveArtifacts artifacts: '**/custom.log', allowEmptyArchive: true
+                                    
+                                    // Look for any test results
+                                    if (fileExists('test-results')) {
+                                        archiveArtifacts artifacts: 'test-results/**', allowEmptyArchive: true
+                                    }
+                                }
+                            }
+                        }
+                    }
+                    
+                    post {
+                        always {
+                            cleanWs(cleanWhenNotBuilt: false,
+                                   deleteDirs: true,
+                                   disableDeferredWipeout: true,
+                                   notFailBuild: true)
+                        }
+                        success {
+                            echo "✅ cpp-snippets build completed successfully!"
+                            echo "Build script: tools/build_all.sh"
+                            echo "Repository: ${params.GIT_REPO_URL}"
+                            echo "Branch: ${params.BRANCH}"
+                        }
+                        failure {
+                            echo "❌ cpp-snippets build failed. Check the logs above for details."
+                        }
+                    }
+                }
+            ''')
+        }
+    }
+}
