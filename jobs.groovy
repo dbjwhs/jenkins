@@ -389,6 +389,10 @@ pipelineJob('cpp-projects/inference-systems-lab-build') {
                                 }
                             }
                             steps {
+                                sh """
+                                    apt-get update
+                                    apt-get install -y cmake build-essential
+                                """
                                 script {
                                     def buildDir = "build-${params.BUILD_TYPE.toLowerCase()}"
                                     
@@ -427,6 +431,10 @@ pipelineJob('cpp-projects/inference-systems-lab-build') {
                                 }
                             }
                             steps {
+                                sh """
+                                    apt-get update
+                                    apt-get install -y cmake build-essential
+                                """
                                 script {
                                     def buildDir = "build-${params.BUILD_TYPE.toLowerCase()}"
                                     dir(buildDir) {
@@ -448,6 +456,10 @@ pipelineJob('cpp-projects/inference-systems-lab-build') {
                                 }
                             }
                             steps {
+                                sh """
+                                    apt-get update
+                                    apt-get install -y cmake build-essential
+                                """
                                 script {
                                     def buildDir = "build-${params.BUILD_TYPE.toLowerCase()}"
                                     dir(buildDir) {
