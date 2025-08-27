@@ -595,7 +595,13 @@ pipelineJob('cpp-projects/cpp-snippets-build') {
                                         git \\
                                         pkg-config \\
                                         bc \\
-                                        libssl-dev
+                                        libssl-dev \\
+                                        python3 \\
+                                        python3-dev \\
+                                        libbz2-dev \\
+                                        libicu-dev \\
+                                        zlib1g-dev \\
+                                        libzstd-dev
                                     
                                     # Set GCC 13 as default for C++23 support
                                     update-alternatives --install /usr/bin/gcc gcc /usr/bin/gcc-13 100
@@ -607,9 +613,19 @@ pipelineJob('cpp-projects/cpp-snippets-build') {
                                     apt-get update
                                     apt-get install -y cmake
                                     
-                                    # Verify versions
+                                    # Install Boost 1.87 from source
+                                    cd /tmp
+                                    wget https://archives.boost.io/release/1.87.0/source/boost_1_87_0.tar.bz2
+                                    tar -xf boost_1_87_0.tar.bz2
+                                    cd boost_1_87_0
+                                    ./bootstrap.sh --with-libraries=system,thread,filesystem,program_options,test
+                                    ./b2 --j=4 link=shared runtime-link=shared variant=release install
+                                    ldconfig
+                                    
+                                    # Verify installations
                                     cmake --version
                                     g++ --version
+                                    ls -la /usr/local/lib/libboost_*
                                 """
                                 script {
                                     sh """
