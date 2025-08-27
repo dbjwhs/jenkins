@@ -27,5 +27,4 @@ credentials:
               id: "github-creds"
 
 jobs:
-  - script: >
-      evaluate(new File('/var/jenkins_home/jobs.groovy').text)
+  - file: /var/jenkins_home/jobs.groovy
