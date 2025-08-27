@@ -366,7 +366,9 @@ pipelineJob('cpp-projects/inference-systems-lab-build') {
                                         clang-tidy \\
                                         clang-format \\
                                         cppcheck \\
-                                        valgrind
+                                        valgrind \\
+                                        libcapnp-dev \\
+                                        capnproto
                                     
                                     # Set default compiler versions
                                     update-alternatives --install /usr/bin/gcc gcc /usr/bin/gcc-11 100
@@ -391,7 +393,7 @@ pipelineJob('cpp-projects/inference-systems-lab-build') {
                             steps {
                                 sh """
                                     apt-get update
-                                    apt-get install -y cmake build-essential git
+                                    apt-get install -y cmake build-essential git libcapnp-dev capnproto
                                 """
                                 script {
                                     def buildDir = "build-${params.BUILD_TYPE.toLowerCase()}"
@@ -433,7 +435,7 @@ pipelineJob('cpp-projects/inference-systems-lab-build') {
                             steps {
                                 sh """
                                     apt-get update
-                                    apt-get install -y cmake build-essential git
+                                    apt-get install -y cmake build-essential git libcapnp-dev capnproto
                                 """
                                 script {
                                     def buildDir = "build-${params.BUILD_TYPE.toLowerCase()}"
@@ -458,7 +460,7 @@ pipelineJob('cpp-projects/inference-systems-lab-build') {
                             steps {
                                 sh """
                                     apt-get update
-                                    apt-get install -y cmake build-essential git
+                                    apt-get install -y cmake build-essential git libcapnp-dev capnproto
                                 """
                                 script {
                                     def buildDir = "build-${params.BUILD_TYPE.toLowerCase()}"
