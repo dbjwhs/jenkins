@@ -530,3 +530,151 @@ pipelineJob('cpp-projects/inference-systems-lab-build') {
         }
     }
 }
+
+pipelineJob('cpp-projects/cpp-snippets-build') {
+    description('Build and test the C++ Snippets collection using build_all.sh script')
+    parameters {
+        stringParam('GIT_REPO_URL', 'https://github.com/dbjwhs/cpp-snippets.git', 'Git repository URL')
+        stringParam('BRANCH', 'main', 'Branch to checkout')
+        booleanParam('CLEAN_WORKSPACE', true, 'Clean workspace before build')
+    }
+    definition {
+        cps {
+            script('''
+                pipeline {
+                    agent any
+                    
+                    options {
+                        timeout(time: 45, unit: 'MINUTES')
+                        timestamps()
+                        buildDiscarder(logRotator(numToKeepStr: '15'))
+                    }
+                    
+                    stages {
+                        stage('Clean Workspace') {
+                            when {
+                                expression { params.CLEAN_WORKSPACE == true }
+                            }
+                            steps {
+                                cleanWs()
+                            }
+                        }
+                        
+                        stage('Checkout Project') {
+                            steps {
+                                script {
+                                    echo "Cloning from Git: ${params.GIT_REPO_URL}"
+                                    git branch: params.BRANCH, url: params.GIT_REPO_URL
+                                    
+                                    // Verify this is the cpp-snippets project
+                                    if (!fileExists('tooling/build_all.sh')) {
+                                        error('tooling/build_all.sh not found - this does not appear to be the cpp-snippets project')
+                                    }
+                                    
+                                    echo 'Confirmed: This is the cpp-snippets project'
+                                    sh 'ls -la tooling/'
+                                }
+                            }
+                        }
+                        
+                        stage('Build All Snippets') {
+                            agent {
+                                docker {
+                                    image 'ubuntu:24.04'
+                                    reuseNode true
+                                    args '--user root'
+                                }
+                            }
+                            steps {
+                                sh """
+                                    apt-get update
+                                    apt-get install -y \\
+                                        wget \\
+                                        build-essential \\
+                                        gcc-13 g++-13 \\
+                                        git \\
+                                        pkg-config \\
+                                        bc \\
+                                        libssl-dev \\
+                                        python3 \\
+                                        python3-dev \\
+                                        libbz2-dev \\
+                                        libicu-dev \\
+                                        zlib1g-dev \\
+                                        libzstd-dev
+                                    
+                                    # Set GCC 13 as default for C++23 support
+                                    update-alternatives --install /usr/bin/gcc gcc /usr/bin/gcc-13 100
+                                    update-alternatives --install /usr/bin/g++ g++ /usr/bin/g++-13 100
+                                    
+                                    # Install latest CMake from official repository
+                                    wget -O - https://apt.kitware.com/keys/kitware-archive-latest.asc 2>/dev/null | gpg --dearmor - | tee /usr/share/keyrings/kitware-archive-keyring.gpg >/dev/null
+                                    echo 'deb [signed-by=/usr/share/keyrings/kitware-archive-keyring.gpg] https://apt.kitware.com/ubuntu/ noble main' | tee /etc/apt/sources.list.d/kitware.list >/dev/null
+                                    apt-get update
+                                    apt-get install -y cmake
+                                    
+                                    # Install Boost 1.87 from source
+                                    cd /tmp
+                                    wget https://archives.boost.io/release/1.87.0/source/boost_1_87_0.tar.bz2
+                                    tar -xf boost_1_87_0.tar.bz2
+                                    cd boost_1_87_0
+                                    ./bootstrap.sh --with-libraries=system,thread,filesystem,program_options,test
+                                    ./b2 --j=4 link=shared runtime-link=shared variant=release install
+                                    ldconfig
+                                    
+                                    # Verify installations
+                                    cmake --version
+                                    g++ --version
+                                    ls -la /usr/local/lib/libboost_*
+                                """
+                                script {
+                                    sh """
+                                        echo "Making build_all.sh executable..."
+                                        chmod +x tooling/build_all.sh
+                                        
+                                        echo "Running build_all.sh script..."
+                                        cd tooling
+                                        ./build_all.sh
+                                    """
+                                }
+                            }
+                        }
+                        
+                        stage('Archive Build Results') {
+                            steps {
+                                script {
+                                    // Archive any build artifacts or logs
+                                    archiveArtifacts artifacts: '**/build/**', allowEmptyArchive: true
+                                    archiveArtifacts artifacts: '**/custom.log', allowEmptyArchive: true
+                                    
+                                    // Look for any test results
+                                    if (fileExists('test-results')) {
+                                        archiveArtifacts artifacts: 'test-results/**', allowEmptyArchive: true
+                                    }
+                                }
+                            }
+                        }
+                    }
+                    
+                    post {
+                        always {
+                            cleanWs(cleanWhenNotBuilt: false,
+                                   deleteDirs: true,
+                                   disableDeferredWipeout: true,
+                                   notFailBuild: true)
+                        }
+                        success {
+                            echo "✅ cpp-snippets build completed successfully!"
+                            echo "Build script: tooling/build_all.sh"
+                            echo "Repository: ${params.GIT_REPO_URL}"
+                            echo "Branch: ${params.BRANCH}"
+                        }
+                        failure {
+                            echo "❌ cpp-snippets build failed. Check the logs above for details."
+                        }
+                    }
+                }
+            ''')
+        }
+    }
+}
