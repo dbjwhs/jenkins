@@ -1,0 +1,28 @@
+# MIT License
+# Copyright (c) 2025 dbjwhs
+
+# Git
+.git
+.gitignore
+
+# Documentation
+README.md
+CLAUDE.md
+
+# Backup files
+backup-*
+*.bak
+
+# IDE files
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# Temporary files
+*.tmp
+*.temp
