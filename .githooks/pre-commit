@@ -1,0 +1,39 @@
+#!/bin/sh
+# MIT License
+# Copyright (c) 2025 dbjwhs
+
+# Pre-commit hook to check EOF newlines on staged files
+set -e
+
+echo "🔍 Checking EOF newlines on staged files..."
+
+# Get list of staged files (only added/modified files)
+staged_files=$(git diff --cached --name-only --diff-filter=AM)
+
+if [ -z "$staged_files" ]; then
+    echo "ℹ️  No staged files to check"
+    exit 0
+fi
+
+# Create temporary file with staged files
+temp_file=$(mktemp)
+echo "$staged_files" > "$temp_file"
+
+# Run EOF newline checker on staged files only
+if python3 tools/check_eof_newline.py --check --filter-from-file "$temp_file" --quiet; then
+    echo "✅ All staged files have proper EOF newlines"
+    rm "$temp_file"
+    exit 0
+else
+    echo ""
+    echo "❌ Some staged files are missing EOF newlines"
+    echo ""
+    echo "To fix automatically:"
+    echo "  python3 tools/check_eof_newline.py --fix --filter-from-file '$temp_file'"
+    echo "  git add -u"
+    echo ""
+    echo "Or fix manually and re-commit"
+    
+    rm "$temp_file"
+    exit 1
+fi
