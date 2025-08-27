@@ -18,6 +18,52 @@ jenkins:
   remotingSecurity:
     enabled: true
 
+security:
+  scriptApproval:
+    approvedSignatures:
+      # Basic Groovy/Java methods
+      - "method java.lang.String toLowerCase"
+      - "method java.lang.String join java.lang.CharSequence"
+      - "method java.util.List add java.lang.Object"
+      - "staticMethod java.lang.System getenv java.lang.String"
+      
+      # Jenkins Pipeline DSL methods
+      - "method hudson.model.Run getEnvironment hudson.model.TaskListener"
+      - "method jenkins.model.Jenkins getItemByFullName java.lang.String"
+      
+      # File operations (commonly needed)
+      - "new java.io.File java.lang.String"
+      - "method java.io.File exists"
+      - "method java.io.File isFile"
+      - "method java.io.File isDirectory"
+      - "method java.io.File getName"
+      - "method java.io.File getPath"
+      - "method java.io.File getAbsolutePath"
+      
+      # String operations
+      - "method java.lang.String contains java.lang.CharSequence"
+      - "method java.lang.String startsWith java.lang.String"
+      - "method java.lang.String endsWith java.lang.String"
+      - "method java.lang.String replace java.lang.CharSequence java.lang.CharSequence"
+      - "method java.lang.String split java.lang.String"
+      - "method java.lang.String trim"
+      - "method java.lang.String substring int"
+      - "method java.lang.String substring int int"
+      
+      # Collection operations
+      - "method java.util.Collection size"
+      - "method java.util.Collection isEmpty"
+      - "method java.util.List get int"
+      - "method java.util.Map get java.lang.Object"
+      - "method java.util.Map put java.lang.Object java.lang.Object"
+      - "method java.util.Map containsKey java.lang.Object"
+      
+      # Pipeline specific approvals for our jobs
+      - "staticMethod org.codehaus.groovy.runtime.DefaultGroovyMethods any java.lang.Object groovy.lang.Closure"
+      - "staticMethod org.codehaus.groovy.runtime.DefaultGroovyMethods collect java.lang.Object groovy.lang.Closure"
+      - "staticMethod org.codehaus.groovy.runtime.DefaultGroovyMethods each java.lang.Object groovy.lang.Closure"
+      - "staticMethod org.codehaus.groovy.runtime.DefaultGroovyMethods findAll java.lang.Object groovy.lang.Closure"
+
 credentials:
   system:
     domainCredentials:
