@@ -351,7 +351,8 @@ pipelineJob('cpp-projects/cql-build') {
                                     dir(buildDir) {
                                         def cmakeArgs = [
                                             "-DCMAKE_BUILD_TYPE=${params.BUILD_TYPE}",
-                                            "-DCMAKE_EXPORT_COMPILE_COMMANDS=ON"
+                                            "-DCMAKE_EXPORT_COMPILE_COMMANDS=ON",
+                                            "-DBUILD_TESTING=ON"
                                         ]
                                         
                                         def cmakeCommand = "cmake ${cmakeArgs.join(' ')} .."
@@ -380,15 +381,41 @@ pipelineJob('cpp-projects/cql-build') {
                                 script {
                                     dir('build') {
                                         sh """
-                                            echo "Testing CQL executable..."
-                                            if [ -f cql ]; then
-                                                ./cql --help || echo "CQL help command completed"
+                                            echo "Running CQL GoogleTest suite..."
+                                            
+                                            # Run the test executable
+                                            if [ -f cql_test ]; then
+                                                echo "Found cql_test executable, running tests..."
+                                                ./cql_test --gtest_output=xml:test_results.xml || echo "Some tests may have failed"
                                             else
-                                                echo "CQL executable not found, listing build contents:"
-                                                ls -la
+                                                echo "cql_test executable not found, trying alternative methods..."
+                                                # Try using CTest
+                                                if [ -f CTestTestfile.cmake ]; then
+                                                    echo "Running tests with CTest..."
+                                                    ctest --output-on-failure --no-compress-output -T Test || echo "CTest completed with some failures"
+                                                fi
                                             fi
+                                            
+                                            # Also test the main executable
+                                            if [ -f cql ]; then
+                                                echo "Testing main CQL executable..."
+                                                ./cql --help || echo "CQL help command completed"
+                                                ./cql --version || echo "CQL version command completed"
+                                            else
+                                                echo "Main cql executable not found"
+                                            fi
+                                            
+                                            echo "Listing build directory contents:"
+                                            ls -la
                                         """
                                     }
+                                }
+                            }
+                            post {
+                                always {
+                                    // Publish test results if available
+                                    publishTestResults testResultsPattern: '**/test_results.xml', allowEmptyResults: true
+                                    publishTestResults testResultsPattern: '**/Testing/**/*.xml', allowEmptyResults: true
                                 }
                             }
                         }
@@ -398,8 +425,13 @@ pipelineJob('cpp-projects/cql-build') {
                                 script {
                                     // Archive build artifacts
                                     archiveArtifacts artifacts: 'build/cql', allowEmptyArchive: true
+                                    archiveArtifacts artifacts: 'build/cql_test', allowEmptyArchive: true
                                     archiveArtifacts artifacts: 'build/CMakeCache.txt', allowEmptyArchive: true
                                     archiveArtifacts artifacts: 'build/compile_commands.json', allowEmptyArchive: true
+                                    
+                                    // Archive test results and logs
+                                    archiveArtifacts artifacts: 'build/test_results.xml', allowEmptyArchive: true
+                                    archiveArtifacts artifacts: 'build/Testing/**/*', allowEmptyArchive: true
                                 }
                             }
                         }
