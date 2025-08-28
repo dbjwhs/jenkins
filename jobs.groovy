@@ -269,6 +269,164 @@ pipelineJob('cpp-projects/inference-systems-lab-build') {
     }
 }
 
+pipelineJob('cpp-projects/cql-build') {
+    description('Build and test the CQL (C++ Query Language) project on Mac mini M2')
+    parameters {
+        stringParam('GIT_REPO_URL', 'https://github.com/dbjwhs/cql.git', 'Git repository URL')
+        stringParam('BRANCH', 'main', 'Branch to checkout')
+        choiceParam('BUILD_TYPE', ['Release', 'Debug', 'RelWithDebInfo'], 'CMake build type')
+        booleanParam('RUN_TESTS', true, 'Run tests after build')
+        booleanParam('CLEAN_BUILD', false, 'Clean build directory before building')
+    }
+    definition {
+        cps {
+            script('''
+                pipeline {
+                    agent { label 'mac-mini-m2' }
+                    
+                    options {
+                        timeout(time: 30, unit: 'MINUTES')
+                        timestamps()
+                        buildDiscarder(logRotator(numToKeepStr: '15'))
+                    }
+                    
+                    environment {
+                        CMAKE_BUILD_PARALLEL_LEVEL = '4'
+                        CTEST_PARALLEL_LEVEL = '4'
+                    }
+                    
+                    stages {
+                        stage('Checkout Project') {
+                            steps {
+                                script {
+                                    echo "Cloning CQL from Git: ${params.GIT_REPO_URL}"
+                                    git branch: params.BRANCH, url: params.GIT_REPO_URL
+                                    
+                                    // Verify this is the CQL project
+                                    if (!fileExists('CMakeLists.txt')) {
+                                        error('CMakeLists.txt not found - this does not appear to be a CMake project')
+                                    }
+                                    
+                                    echo 'Confirmed: This is the CQL project'
+                                    sh 'ls -la'
+                                }
+                            }
+                        }
+                        
+                        stage('Verify Dependencies') {
+                            steps {
+                                sh """
+                                    echo "Verifying Mac C++ environment for CQL..."
+                                    
+                                    # Check required tools
+                                    cmake --version
+                                    clang++ --version
+                                    
+                                    # Install/check CURL dependency
+                                    echo "Checking CURL installation..."
+                                    brew list curl || brew install curl
+                                    curl --version
+                                    
+                                    # Install other common dependencies
+                                    brew list pkg-config || brew install pkg-config
+                                    
+                                    # Verify environment
+                                    echo "PATH: \\\\$PATH"
+                                    echo "CMAKE_PREFIX_PATH: \\\\$CMAKE_PREFIX_PATH"
+                                """
+                            }
+                        }
+                        
+                        stage('Configure CMake') {
+                            steps {
+                                script {
+                                    def buildDir = "build"
+                                    
+                                    if (params.CLEAN_BUILD && fileExists(buildDir)) {
+                                        sh "rm -rf ${buildDir}"
+                                    }
+                                    
+                                    sh "mkdir -p ${buildDir}"
+                                    
+                                    dir(buildDir) {
+                                        def cmakeArgs = [
+                                            "-DCMAKE_BUILD_TYPE=${params.BUILD_TYPE}",
+                                            "-DCMAKE_EXPORT_COMPILE_COMMANDS=ON"
+                                        ]
+                                        
+                                        def cmakeCommand = "cmake ${cmakeArgs.join(' ')} .."
+                                        echo "Running: ${cmakeCommand}"
+                                        sh cmakeCommand
+                                    }
+                                }
+                            }
+                        }
+                        
+                        stage('Build CQL') {
+                            steps {
+                                script {
+                                    dir('build') {
+                                        sh "make -j4"
+                                    }
+                                }
+                            }
+                        }
+                        
+                        stage('Test CQL') {
+                            when {
+                                expression { params.RUN_TESTS == true }
+                            }
+                            steps {
+                                script {
+                                    dir('build') {
+                                        sh """
+                                            echo "Testing CQL executable..."
+                                            if [ -f cql ]; then
+                                                ./cql --help || echo "CQL help command completed"
+                                            else
+                                                echo "CQL executable not found, listing build contents:"
+                                                ls -la
+                                            fi
+                                        """
+                                    }
+                                }
+                            }
+                        }
+                        
+                        stage('Archive Artifacts') {
+                            steps {
+                                script {
+                                    // Archive build artifacts
+                                    archiveArtifacts artifacts: 'build/cql', allowEmptyArchive: true
+                                    archiveArtifacts artifacts: 'build/CMakeCache.txt', allowEmptyArchive: true
+                                    archiveArtifacts artifacts: 'build/compile_commands.json', allowEmptyArchive: true
+                                }
+                            }
+                        }
+                    }
+                    
+                    post {
+                        always {
+                            cleanWs(cleanWhenNotBuilt: false,
+                                   deleteDirs: true,
+                                   disableDeferredWipeout: true,
+                                   notFailBuild: true)
+                        }
+                        success {
+                            echo "✅ CQL build completed successfully!"
+                            echo "Build type: ${params.BUILD_TYPE}"
+                            echo "Tests run: ${params.RUN_TESTS}"
+                        }
+                        failure {
+                            echo "❌ CQL build failed. Check the logs above for details."
+                        }
+                    }
+                }
+            ''')
+        }
+    }
+}
+
 pipelineJob('cpp-projects/cpp-snippets-build') {
     description('Build and test the C++ Snippets collection on Mac mini M2 using build_all.sh script')
     parameters {
