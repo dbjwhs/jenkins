@@ -94,6 +94,48 @@ credentials:
           - usernamePassword:
               scope: GLOBAL
               id: "github-creds"
+          - basicSSHUserPrivateKey:
+              scope: GLOBAL
+              id: "mac-mini-ssh"
+              username: "jenkins"
+              description: "SSH private key for Mac mini M2 agent"
+              privateKeySource:
+                directEntry:
+                  privateKey: |
+                    # This will be replaced with the actual private key after running setup-ssh-credentials.sh
+                    # The private key should be placed at: /var/jenkins_home/.ssh/jenkins_agent_key
+                    # Use the Jenkins UI to update this credential with the actual key content
+
+jenkins:
+  nodes:
+    - permanent:
+        name: "mac-mini-m2"
+        labelString: "macos m2 arm64 native"
+        mode: NORMAL
+        numExecutors: 4
+        remoteFS: "/Users/jenkins/agent"
+        launcher:
+          ssh:
+            host: "host.docker.internal"
+            port: 22
+            credentialsId: "mac-mini-ssh"
+            launchTimeoutSeconds: 60
+            maxNumRetries: 3
+            retryWaitTime: 30
+            sshHostKeyVerificationStrategy:
+              manuallyTrustedKeyVerificationStrategy:
+                requireInitialManualTrust: false
+        nodeProperties:
+          - envVars:
+              env:
+                - key: "HOMEBREW_PREFIX"
+                  value: "/opt/homebrew"
+                - key: "PATH"
+                  value: "/opt/homebrew/bin:/usr/local/bin:/usr/bin:/bin:/usr/sbin:/sbin"
+                - key: "CMAKE_PREFIX_PATH"
+                  value: "/opt/homebrew"
+        retentionStrategy:
+          always: {}
 
 jobs:
   - file: /var/jenkins_home/jobs.groovy

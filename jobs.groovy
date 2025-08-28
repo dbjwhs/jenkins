@@ -82,7 +82,7 @@ folder('cpp-projects') {
 }
 
 pipelineJob('cpp-projects/inference-systems-lab-build') {
-    description('Build and test the Inference Systems Laboratory C++ project')
+    description('Build and test the Inference Systems Laboratory C++ project on Mac mini M2')
     parameters {
         stringParam('GIT_REPO_URL', 'https://github.com/dbjwhs/inference-systems-lab.git', 'Git repository URL')
         stringParam('BRANCH', 'main', 'Branch to checkout')
@@ -95,7 +95,7 @@ pipelineJob('cpp-projects/inference-systems-lab-build') {
         cps {
             script('''
                 pipeline {
-                    agent any
+                    agent { label 'mac-mini-m2' }
                     
                     options {
                         timeout(time: 60, unit: 'MINUTES')
@@ -131,64 +131,30 @@ pipelineJob('cpp-projects/inference-systems-lab-build') {
                             }
                         }
                         
-                        stage('Install Dependencies') {
-                            agent {
-                                docker {
-                                    image 'ubuntu:22.04'
-                                    reuseNode true
-                                    args '--user root'
-                                }
-                            }
+                        stage('Verify Dependencies') {
                             steps {
                                 sh """
-                                    apt-get update
-                                    apt-get install -y \\
-                                        cmake \\
-                                        build-essential \\
-                                        gcc-11 g++-11 \\
-                                        ninja-build \\
-                                        pkg-config \\
-                                        git \\
-                                        python3 \\
-                                        python3-pip \\
-                                        libssl-dev \\
-                                        libbenchmark-dev \\
-                                        libgtest-dev \\
-                                        libgmock-dev \\
-                                        doxygen \\
-                                        graphviz \\
-                                        clang-tidy \\
-                                        clang-format \\
-                                        cppcheck \\
-                                        valgrind \\
-                                        libcapnp-dev \\
-                                        capnproto
+                                    echo "Verifying Mac development environment..."
                                     
-                                    # Set default compiler versions
-                                    update-alternatives --install /usr/bin/gcc gcc /usr/bin/gcc-11 100
-                                    update-alternatives --install /usr/bin/g++ g++ /usr/bin/g++-11 100
-                                    
-                                    # Verify installations
+                                    # Check required tools
                                     cmake --version
-                                    g++ --version
-                                    ninja --version
+                                    clang++ --version
+                                    ninja --version || (echo "Installing ninja..." && brew install ninja)
+                                    pkg-config --version || (echo "Installing pkg-config..." && brew install pkg-config)
+                                    
+                                    # Check for Cap'n Proto
+                                    capnp --version || (echo "Installing capnproto..." && brew install capnproto)
+                                    
+                                    # Verify Homebrew paths
+                                    echo "PATH: \$PATH"
+                                    echo "CMAKE_PREFIX_PATH: \$CMAKE_PREFIX_PATH"
+                                    ls -la /opt/homebrew/bin/cmake || echo "CMake not found in Homebrew"
                                 """
                             }
                         }
                         
                         stage('Configure CMake') {
-                            agent {
-                                docker {
-                                    image 'ubuntu:22.04'
-                                    reuseNode true
-                                    args '--user root'
-                                }
-                            }
                             steps {
-                                sh """
-                                    apt-get update
-                                    apt-get install -y cmake build-essential git pkg-config libcapnp-dev capnproto
-                                """
                                 script {
                                     def buildDir = "build-${params.BUILD_TYPE.toLowerCase()}"
                                     
@@ -219,18 +185,7 @@ pipelineJob('cpp-projects/inference-systems-lab-build') {
                         }
                         
                         stage('Build Project') {
-                            agent {
-                                docker {
-                                    image 'ubuntu:22.04'
-                                    reuseNode true
-                                    args '--user root'
-                                }
-                            }
                             steps {
-                                sh """
-                                    apt-get update
-                                    apt-get install -y cmake build-essential git pkg-config libcapnp-dev capnproto
-                                """
                                 script {
                                     def buildDir = "build-${params.BUILD_TYPE.toLowerCase()}"
                                     dir(buildDir) {
@@ -244,18 +199,7 @@ pipelineJob('cpp-projects/inference-systems-lab-build') {
                             when {
                                 expression { params.RUN_TESTS == true }
                             }
-                            agent {
-                                docker {
-                                    image 'ubuntu:22.04'
-                                    reuseNode true
-                                    args '--user root'
-                                }
-                            }
                             steps {
-                                sh """
-                                    apt-get update
-                                    apt-get install -y cmake build-essential git pkg-config libcapnp-dev capnproto
-                                """
                                 script {
                                     def buildDir = "build-${params.BUILD_TYPE.toLowerCase()}"
                                     dir(buildDir) {
@@ -326,7 +270,7 @@ pipelineJob('cpp-projects/inference-systems-lab-build') {
 }
 
 pipelineJob('cpp-projects/cpp-snippets-build') {
-    description('Build and test the C++ Snippets collection using build_all.sh script')
+    description('Build and test the C++ Snippets collection on Mac mini M2 using build_all.sh script')
     parameters {
         stringParam('GIT_REPO_URL', 'https://github.com/dbjwhs/cpp-snippets.git', 'Git repository URL')
         stringParam('BRANCH', 'main', 'Branch to checkout')
@@ -336,7 +280,7 @@ pipelineJob('cpp-projects/cpp-snippets-build') {
         cps {
             script('''
                 pipeline {
-                    agent any
+                    agent { label 'mac-mini-m2' }
                     
                     options {
                         timeout(time: 45, unit: 'MINUTES')
@@ -372,65 +316,36 @@ pipelineJob('cpp-projects/cpp-snippets-build') {
                         }
                         
                         stage('Build All Snippets') {
-                            agent {
-                                docker {
-                                    image 'ubuntu:24.04'
-                                    reuseNode true
-                                    args '--user root'
-                                }
-                            }
                             steps {
                                 sh """
-                                    apt-get update
-                                    apt-get install -y \\
-                                        wget \\
-                                        build-essential \\
-                                        gcc-13 g++-13 \\
-                                        git \\
-                                        pkg-config \\
-                                        bc \\
-                                        libssl-dev \\
-                                        python3 \\
-                                        python3-dev \\
-                                        libbz2-dev \\
-                                        libicu-dev \\
-                                        zlib1g-dev \\
-                                        libzstd-dev
+                                    echo "Verifying Mac C++ environment for snippets..."
                                     
-                                    # Set GCC 13 as default for C++23 support
-                                    update-alternatives --install /usr/bin/gcc gcc /usr/bin/gcc-13 100
-                                    update-alternatives --install /usr/bin/g++ g++ /usr/bin/g++-13 100
-                                    
-                                    # Install latest CMake from official repository
-                                    wget -O - https://apt.kitware.com/keys/kitware-archive-latest.asc 2>/dev/null | gpg --dearmor - | tee /usr/share/keyrings/kitware-archive-keyring.gpg >/dev/null
-                                    echo 'deb [signed-by=/usr/share/keyrings/kitware-archive-keyring.gpg] https://apt.kitware.com/ubuntu/ noble main' | tee /etc/apt/sources.list.d/kitware.list >/dev/null
-                                    apt-get update
-                                    apt-get install -y cmake
-                                    
-                                    # Install Boost 1.87 from source
-                                    cd /tmp
-                                    wget https://archives.boost.io/release/1.87.0/source/boost_1_87_0.tar.bz2
-                                    tar -xf boost_1_87_0.tar.bz2
-                                    cd boost_1_87_0
-                                    ./bootstrap.sh --with-libraries=system,thread,filesystem,program_options,test
-                                    ./b2 --j=4 link=shared runtime-link=shared variant=release install
-                                    ldconfig
-                                    
-                                    # Verify installations
+                                    # Check required tools
+                                    clang++ --version
                                     cmake --version
-                                    g++ --version
-                                    ls -la /usr/local/lib/libboost_*
+                                    
+                                    # Install/check dependencies via Homebrew
+                                    echo "Checking Boost installation..."
+                                    brew list boost || brew install boost
+                                    
+                                    echo "Checking other dependencies..."
+                                    brew list openssl || brew install openssl
+                                    
+                                    # Verify Homebrew environment
+                                    echo "Boost location: \$(brew --prefix boost)"
+                                    echo "OpenSSL location: \$(brew --prefix openssl)"
+                                    
+                                    # Set up environment for build
+                                    export BOOST_ROOT=\$(brew --prefix boost)
+                                    export OPENSSL_ROOT_DIR=\$(brew --prefix openssl)
+                                    
+                                    echo "Making build_all.sh executable..."
+                                    chmod +x tooling/build_all.sh
+                                    
+                                    echo "Running build_all.sh script..."
+                                    cd tooling
+                                    ./build_all.sh
                                 """
-                                script {
-                                    sh """
-                                        echo "Making build_all.sh executable..."
-                                        chmod +x tooling/build_all.sh
-                                        
-                                        echo "Running build_all.sh script..."
-                                        cd tooling
-                                        ./build_all.sh
-                                    """
-                                }
                             }
                         }
                         
