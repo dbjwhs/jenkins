@@ -431,7 +431,7 @@ pipelineJob('cpp-projects/cql-build') {
                                     
                                     // Archive test results and logs
                                     archiveArtifacts artifacts: 'build/test_results.xml', allowEmptyArchive: true
-                                    archiveArtifacts artifacts: 'build/Testing/**/*', allowEmptyArchive: true
+                                    archiveArtifacts artifacts: 'build/Testing/**', allowEmptyArchive: true
                                 }
                             }
                         }
