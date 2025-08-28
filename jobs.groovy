@@ -133,7 +133,7 @@ pipelineJob('cpp-projects/inference-systems-lab-build') {
                         
                         stage('Verify Dependencies') {
                             steps {
-                                sh """
+                                sh '''
                                     echo "Verifying Mac development environment..."
                                     
                                     # Check required tools
@@ -146,10 +146,10 @@ pipelineJob('cpp-projects/inference-systems-lab-build') {
                                     capnp --version || (echo "Installing capnproto..." && brew install capnproto)
                                     
                                     # Verify Homebrew paths
-                                    echo "PATH: \$PATH"
-                                    echo "CMAKE_PREFIX_PATH: \$CMAKE_PREFIX_PATH"
+                                    echo "PATH: $PATH"
+                                    echo "CMAKE_PREFIX_PATH: $CMAKE_PREFIX_PATH"
                                     ls -la /opt/homebrew/bin/cmake || echo "CMake not found in Homebrew"
-                                """
+                                '''
                             }
                         }
                         
@@ -203,15 +203,15 @@ pipelineJob('cpp-projects/inference-systems-lab-build') {
                                 script {
                                     def buildDir = "build-${params.BUILD_TYPE.toLowerCase()}"
                                     dir(buildDir) {
-                                        sh """
+                                        sh '''
                                             echo "Running CTest..."
-                                            ctest --output-on-failure --parallel \${CTEST_PARALLEL_LEVEL:-4} || true
+                                            ctest --output-on-failure --parallel ${CTEST_PARALLEL_LEVEL:-4} || true
                                             
                                             echo "Test results:"
                                             if [ -f Testing/Temporary/LastTest.log ]; then
                                                 tail -20 Testing/Temporary/LastTest.log
                                             fi
-                                        """
+                                        '''
                                     }
                                 }
                             }
@@ -317,7 +317,7 @@ pipelineJob('cpp-projects/cpp-snippets-build') {
                         
                         stage('Build All Snippets') {
                             steps {
-                                sh """
+                                sh '''
                                     echo "Verifying Mac C++ environment for snippets..."
                                     
                                     # Check required tools
@@ -332,12 +332,12 @@ pipelineJob('cpp-projects/cpp-snippets-build') {
                                     brew list openssl || brew install openssl
                                     
                                     # Verify Homebrew environment
-                                    echo "Boost location: \$(brew --prefix boost)"
-                                    echo "OpenSSL location: \$(brew --prefix openssl)"
+                                    echo "Boost location: $(brew --prefix boost)"
+                                    echo "OpenSSL location: $(brew --prefix openssl)"
                                     
                                     # Set up environment for build
-                                    export BOOST_ROOT=\$(brew --prefix boost)
-                                    export OPENSSL_ROOT_DIR=\$(brew --prefix openssl)
+                                    export BOOST_ROOT=$(brew --prefix boost)
+                                    export OPENSSL_ROOT_DIR=$(brew --prefix openssl)
                                     
                                     echo "Making build_all.sh executable..."
                                     chmod +x tooling/build_all.sh
@@ -345,7 +345,7 @@ pipelineJob('cpp-projects/cpp-snippets-build') {
                                     echo "Running build_all.sh script..."
                                     cd tooling
                                     ./build_all.sh
-                                """
+                                '''
                             }
                         }
                         
