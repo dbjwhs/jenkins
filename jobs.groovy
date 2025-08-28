@@ -143,7 +143,7 @@ pipelineJob('cpp-projects/inference-systems-lab-build') {
                                     pkg-config --version || (echo "Installing pkg-config..." && brew install pkg-config)
                                     
                                     # Check for Cap'n Proto
-                                    capnp --version || (echo "Installing capnproto..." && brew install capnproto)
+                                    capnp --version || (echo "Installing capnp..." && brew install capnp)
                                     
                                     # Verify Homebrew paths
                                     echo "PATH: \\$PATH"
