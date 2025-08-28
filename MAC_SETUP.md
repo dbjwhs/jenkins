@@ -204,9 +204,21 @@ jenkins:
           always: {}
 ```
 
-### 5.3 Update docker-compose.yaml
+### 5.3 Create .env File (WORKING SOLUTION)
 
-Make sure docker-compose.yaml mounts the credentials file:
+**IMPORTANT**: Create a `.env` file in your Jenkins directory (next to docker-compose.yaml):
+
+```bash
+# .env file content:
+# Jenkins Environment Variables - DO NOT COMMIT TO GIT
+MAC_MINI_SSH_KEY="-----BEGIN OPENSSH PRIVATE KEY-----
+YOUR_PRIVATE_KEY_CONTENT_FROM_jenkins_agent_key
+-----END OPENSSH PRIVATE KEY-----"
+```
+
+### 5.4 Update docker-compose.yaml (WORKING SOLUTION)
+
+The docker-compose.yaml should mount the SSH key file directly and load the .env file:
 
 ```yaml
 volumes:
@@ -214,15 +226,35 @@ volumes:
   - /var/run/docker.sock:/var/run/docker.sock
   - ./jobs.groovy:/var/jenkins_home/jobs.groovy:ro
   - ./jenkins.yaml:/var/jenkins_home/jenkins.yaml:ro
-  - ./jenkins-credentials.yaml:/var/jenkins_home/jenkins-credentials.yaml:ro
+  - ~/.ssh/jenkins_agent_key:/var/jenkins_home/.ssh/jenkins_agent_key:ro
+env_file:
+  - .env
 ```
 
-### 5.4 Restart Jenkins
+**Key Points:**
+- The SSH key file is mounted directly from Mac to Jenkins container
+- The .env file provides environment variable for JCasC configuration
+- Both approaches work together for maximum reliability
+
+### 5.5 Fix SSH Key Permissions (CRITICAL STEP)
+
+After mounting the SSH key, fix the permissions in the Jenkins container:
+
+```bash
+# Set proper ownership and permissions for the mounted SSH key
+docker exec -u root jenkins-jenkins-1 chown jenkins:jenkins /var/jenkins_home/.ssh/jenkins_agent_key
+docker exec -u root jenkins-jenkins-1 chmod 600 /var/jenkins_home/.ssh/jenkins_agent_key
+
+# Test SSH connection from Jenkins container
+docker exec jenkins-jenkins-1 ssh -o StrictHostKeyChecking=no -i /var/jenkins_home/.ssh/jenkins_agent_key dbjones@host.docker.internal 'echo "SSH test successful"'
+```
+
+### 5.6 Restart Jenkins
 ```bash
 docker-compose restart jenkins
 ```
 
-**No more manual credential setup needed!** The credentials are loaded automatically from the external file.
+**WORKING SOLUTION**: The agent connects automatically with persistent SSH key mounting and proper permissions!
 
 ## Step 6: Update Pipeline Jobs
 
