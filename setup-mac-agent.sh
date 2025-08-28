@@ -13,7 +13,7 @@ JENKINS_USER="jenkins"
 AGENT_DIR="/Users/jenkins/agent"
 JAVA_VERSION="11"
 
-echo "Step 1: Creating Jenkins user account"
+echo "Step 1: Checking Jenkins user account"
 if ! id "$JENKINS_USER" &>/dev/null; then
     echo "Creating jenkins user account..."
     
@@ -35,6 +35,18 @@ if ! id "$JENKINS_USER" &>/dev/null; then
     echo "✅ Jenkins user created"
 else
     echo "✅ Jenkins user already exists"
+    
+    # Ensure home directory exists
+    if [ ! -d "/Users/jenkins" ]; then
+        echo "Creating missing home directory..."
+        sudo createhomedir -c -u jenkins
+    fi
+    
+    # Check if user needs password set
+    echo "If you haven't set a password for the jenkins user yet, you can do so now:"
+    echo "sudo passwd jenkins"
+    echo "Press Enter to continue or Ctrl+C to set password first..."
+    read -r
 fi
 
 echo "Step 2: Installing required software"
