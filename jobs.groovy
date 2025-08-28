@@ -414,8 +414,8 @@ pipelineJob('cpp-projects/cql-build') {
                             post {
                                 always {
                                     // Publish test results if available
-                                    junit testResultsPattern: '**/test_results.xml', allowEmptyResults: true
-                                    junit testResultsPattern: '**/Testing/**/*.xml', allowEmptyResults: true
+                                    junit testResults: '**/test_results.xml', allowEmptyResults: true
+                                    junit testResults: '**/Testing/**/*.xml', allowEmptyResults: true
                                 }
                             }
                         }
@@ -431,7 +431,7 @@ pipelineJob('cpp-projects/cql-build') {
                                     
                                     // Archive test results and logs
                                     archiveArtifacts artifacts: 'build/test_results.xml', allowEmptyArchive: true
-                                    archiveArtifacts artifacts: 'build/Testing/**/*', allowEmptyArchive: true
+                                    archiveArtifacts artifacts: 'build/Testing/**', allowEmptyArchive: true
                                 }
                             }
                         }
