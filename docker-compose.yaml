@@ -11,6 +11,7 @@ services:
       - /var/run/docker.sock:/var/run/docker.sock
       - ./jobs.groovy:/var/jenkins_home/jobs.groovy:ro
       - ./jenkins.yaml:/var/jenkins_home/jenkins.yaml:ro
+      - ~/.ssh/jenkins_agent_key:/var/jenkins_home/.ssh/jenkins_agent_key:ro
     env_file:
       - .env
     group_add:
