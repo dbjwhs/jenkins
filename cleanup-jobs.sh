@@ -6,13 +6,15 @@
 JENKINS_URL="http://localhost:8080"
 JENKINS_USER="dbjwhs"
 JENKINS_PASS="jenkins"
+CONTAINER_NAME="jenkins-jenkins-1"
 
 echo "Cleaning up old Jenkins jobs..."
 echo "This will remove: test-repositories folder and python-hello-world job"
+echo "Using container: $CONTAINER_NAME"
 echo ""
 
 # Execute the cleanup script via docker exec
-docker exec jenkins bash -c "cat > /tmp/cleanup.groovy << 'EOF'
+docker exec $CONTAINER_NAME bash -c "cat > /tmp/cleanup.groovy << 'EOF'
 import jenkins.model.Jenkins
 
 def jenkins = Jenkins.instance
@@ -41,7 +43,7 @@ EOF
 "
 
 # Run the script in Jenkins
-docker exec jenkins bash -c "echo 'jenkins.model.Jenkins.instance.doEval(new File(\"/tmp/cleanup.groovy\").text)' | java -jar /opt/jenkins-cli.jar -s http://localhost:8080 -auth ${JENKINS_USER}:${JENKINS_PASS} groovy ="
+docker exec $CONTAINER_NAME bash -c "echo 'jenkins.model.Jenkins.instance.doEval(new File(\"/tmp/cleanup.groovy\").text)' | java -jar /opt/jenkins-cli.jar -s http://localhost:8080 -auth ${JENKINS_USER}:${JENKINS_PASS} groovy ="
 
 echo ""
 echo "Cleanup complete! The old jobs should now be removed."
