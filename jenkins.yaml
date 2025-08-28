@@ -94,7 +94,14 @@ credentials:
           - usernamePassword:
               scope: GLOBAL
               id: "github-creds"
-          # mac-mini-ssh credential is defined in jenkins-credentials.yaml (not in git)
+          - basicSSHUserPrivateKey:
+              scope: GLOBAL
+              id: "mac-mini-ssh"
+              username: "dbjones"
+              description: "SSH key for Mac mini M2 agent"
+              privateKeySource:
+                directEntry:
+                  privateKey: ${MAC_MINI_SSH_KEY}
 
 jenkins:
   nodes:

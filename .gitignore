@@ -17,3 +17,5 @@ jenkins-credentials.yaml
 *-credentials.yaml
 *.pem
 *.key
+.env
+.env.*
