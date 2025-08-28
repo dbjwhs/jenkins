@@ -11,3 +11,9 @@
 # OS files
 .DS_Store
 Thumbs.db
+
+# Security - DO NOT COMMIT CREDENTIALS
+jenkins-credentials.yaml
+*-credentials.yaml
+*.pem
+*.key

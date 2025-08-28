@@ -135,22 +135,42 @@ docker exec jenkins-jenkins-1 ssh -i /var/jenkins_home/.ssh/jenkins_agent_key \
 
 ## Step 5: Configure Jenkins
 
-### 5.1 Update jenkins.yaml
+### 5.1 Create Secure Credentials File
 
-Add this configuration to your `jenkins.yaml`:
+**IMPORTANT**: Never store private keys in Git! Create a separate credentials file:
+
+1. **On your Mac mini**, create `jenkins-credentials.yaml` (next to docker-compose.yaml):
 
 ```yaml
+# Jenkins Credentials - DO NOT COMMIT TO GIT
 credentials:
   system:
     domainCredentials:
       - credentials:
-          # Temporary credential - will be replaced in UI
-          - usernamePassword:
+          - basicSSHUserPrivateKey:
               scope: GLOBAL
               id: "mac-mini-ssh"
               username: "YOUR_MAC_USERNAME"  # Replace with your username
-              password: "temp"
-              description: "Mac mini SSH - update in UI"
+              description: "SSH key for Mac mini M2 agent"
+              privateKeySource:
+                directEntry:
+                  privateKey: |
+                    -----BEGIN OPENSSH PRIVATE KEY-----
+                    YOUR_PRIVATE_KEY_CONTENT_HERE
+                    -----END OPENSSH PRIVATE KEY-----
+```
+
+2. **Add to .gitignore** (this is already done):
+```
+jenkins-credentials.yaml
+*-credentials.yaml
+*.pem
+*.key
+```
+
+### 5.2 Update jenkins.yaml
+
+The main `jenkins.yaml` now references the external credentials file:
 
 jenkins:
   nodes:
@@ -184,28 +204,25 @@ jenkins:
           always: {}
 ```
 
-### 5.2 Restart Jenkins
+### 5.3 Update docker-compose.yaml
+
+Make sure docker-compose.yaml mounts the credentials file:
+
+```yaml
+volumes:
+  - jenkins_home:/var/jenkins_home
+  - /var/run/docker.sock:/var/run/docker.sock
+  - ./jobs.groovy:/var/jenkins_home/jobs.groovy:ro
+  - ./jenkins.yaml:/var/jenkins_home/jenkins.yaml:ro
+  - ./jenkins-credentials.yaml:/var/jenkins_home/jenkins-credentials.yaml:ro
+```
+
+### 5.4 Restart Jenkins
 ```bash
 docker-compose restart jenkins
 ```
 
-### 5.3 Add SSH Key in Jenkins UI
-
-1. Navigate to: **Manage Jenkins → Manage Credentials**
-2. Click on **(global)** domain
-3. Find and delete the temporary "mac-mini-ssh" credential
-4. Click **Add Credentials**
-5. Select **SSH Username with private key**
-6. Fill in:
-   - **ID**: `mac-mini-ssh`
-   - **Username**: Your Mac username
-   - **Private Key**: Select "Enter directly"
-   - Copy and paste your private key:
-     ```bash
-     cat ~/.ssh/jenkins_agent_key
-     ```
-   - Paste the entire key including BEGIN and END lines
-7. Click **Create**
+**No more manual credential setup needed!** The credentials are loaded automatically from the external file.
 
 ## Step 6: Update Pipeline Jobs
 
@@ -268,10 +285,12 @@ The agent sets these environment variables:
 
 ## Security Notes
 
-- SSH key authentication only (no passwords)
-- Agent runs under your user account
+- **SSH key authentication only** (no passwords)
+- **Private keys NOT stored in Git** - uses external credentials file
+- Agent runs under your user account (principle of least privilege)
 - Jenkins accesses via Docker's host.docker.internal
-- Private key stored securely in Jenkins container
+- Credentials file is mounted read-only and excluded from Git
+- Private key permissions: 600 (owner read/write only)
 
 ## Performance Benefits
 

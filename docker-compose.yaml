@@ -11,6 +11,7 @@ services:
       - /var/run/docker.sock:/var/run/docker.sock
       - ./jobs.groovy:/var/jenkins_home/jobs.groovy:ro
       - ./jenkins.yaml:/var/jenkins_home/jenkins.yaml:ro
+      - ./jenkins-credentials.yaml:/var/jenkins_home/jenkins-credentials.yaml:ro
     group_add:
       - "998"
     user: root
