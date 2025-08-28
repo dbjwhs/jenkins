@@ -19,6 +19,12 @@ jenkins:
     enabled: true
 
 security:
+  # Option 1: Disable sandbox for Job DSL scripts (recommended for development)
+  # This allows Job DSL scripts to run without script approval
+  jobDsl:
+    scriptSecurity:
+      sandbox: false
+      
   scriptApproval:
     approvedSignatures:
       # Basic Groovy/Java methods
