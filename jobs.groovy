@@ -414,8 +414,8 @@ pipelineJob('cpp-projects/cql-build') {
                             post {
                                 always {
                                     // Publish test results if available
-                                    junit testResultsPattern: '**/test_results.xml', allowEmptyResults: true
-                                    junit testResultsPattern: '**/Testing/**/*.xml', allowEmptyResults: true
+                                    junit testResults: '**/test_results.xml', allowEmptyResults: true
+                                    junit testResults: '**/Testing/**/*.xml', allowEmptyResults: true
                                 }
                             }
                         }
