@@ -74,7 +74,7 @@ java -version
 brew install cmake ninja pkg-config git
 
 # Install C++ dependencies
-brew install boost openssl capnproto
+brew install boost openssl capnp googletest
 
 # Verify installations
 cmake --version
