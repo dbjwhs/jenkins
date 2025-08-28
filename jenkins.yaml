@@ -19,12 +19,8 @@ jenkins:
     enabled: true
 
 security:
-  # Option 1: Disable sandbox for Job DSL scripts (recommended for development)
-  # This allows Job DSL scripts to run without script approval
-  jobDsl:
-    scriptSecurity:
-      sandbox: false
-      
+  # Script approval configuration
+  # For Job DSL, we'll handle sandbox settings in the seed job itself
   scriptApproval:
     approvedSignatures:
       # Basic Groovy/Java methods
@@ -82,6 +78,14 @@ security:
       - "new java.util.ArrayList"
       - "staticMethod org.codehaus.groovy.runtime.DefaultGroovyMethods leftShift java.util.Map java.util.Map$Entry"
       - "method groovy.util.ConfigObject getProperty java.lang.String"
+      
+      # Additional DSL operations
+      - "method java.lang.Class forName java.lang.String"
+      - "staticMethod java.lang.Class forName java.lang.String"
+      - "method java.lang.Object getClass"
+      - "new java.lang.RuntimeException java.lang.String"
+      - "method java.lang.Throwable printStackTrace"
+      - "staticMethod groovy.lang.GroovySystem getVersion"
 
 credentials:
   system:
