@@ -136,3 +136,8 @@ jenkins:
 
 jobs:
   - file: /var/jenkins_home/jobs.groovy
+
+appearance:
+  themeManager:
+    disableUserThemes: false
+    theme: "darkSystem"
