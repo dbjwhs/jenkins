@@ -1,7 +1,14 @@
 #!/usr/bin/env groovy
 
 // Script to remove old jobs that were deleted from jobs.groovy
-// Run this in Jenkins Script Console: Manage Jenkins > Script Console
+// 
+// HOW TO USE:
+// 1. Go to Jenkins UI
+// 2. Navigate to: Manage Jenkins > Script Console
+// 3. Paste this entire script into the console
+// 4. Click "Run"
+// 
+// Successfully tested and used via Jenkins Script Console
 
 import jenkins.model.Jenkins
 

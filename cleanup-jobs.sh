@@ -1,50 +1,58 @@
 #!/bin/bash
 
 # Cleanup old Jenkins jobs that were removed from jobs.groovy
-# This script runs the cleanup groovy script in Jenkins Script Console
+# This script uses the Jenkins Script Console API
 
 JENKINS_URL="http://localhost:8080"
 JENKINS_USER="dbjwhs"
 JENKINS_PASS="jenkins"
-CONTAINER_NAME="jenkins-jenkins-1"
 
 echo "Cleaning up old Jenkins jobs..."
 echo "This will remove: test-repositories folder and python-hello-world job"
-echo "Using container: $CONTAINER_NAME"
 echo ""
 
-# Execute the cleanup script via docker exec
-docker exec $CONTAINER_NAME bash -c "cat > /tmp/cleanup.groovy << 'EOF'
-import jenkins.model.Jenkins
+# Groovy script to execute
+SCRIPT='import jenkins.model.Jenkins
 
 def jenkins = Jenkins.instance
 
 // List of jobs/folders to remove
 def jobsToRemove = [
-    'test-repositories',  // This will remove the folder and all jobs inside
-    'python-hello-world'   // Individual job if it exists
+    "test-repositories",  // This will remove the folder and all jobs inside
+    "python-hello-world"   // Individual job if it exists
 ]
 
-println 'Starting cleanup of old jobs...'
+println "Starting cleanup of old jobs..."
 
 jobsToRemove.each { jobName ->
     def item = jenkins.getItem(jobName)
     if (item) {
-        println \"Deleting: \${jobName}\"
+        println "Deleting: ${jobName}"
         item.delete()
-        println \"✓ Deleted \${jobName}\"
+        println "✓ Deleted ${jobName}"
     } else {
-        println \"✗ Not found: \${jobName}\"
+        println "✗ Not found: ${jobName}"
     }
 }
 
-println 'Cleanup complete!'
-EOF
-"
+println "Cleanup complete!"
 
-# Run the script in Jenkins
-docker exec $CONTAINER_NAME bash -c "echo 'jenkins.model.Jenkins.instance.doEval(new File(\"/tmp/cleanup.groovy\").text)' | java -jar /opt/jenkins-cli.jar -s http://localhost:8080 -auth ${JENKINS_USER}:${JENKINS_PASS} groovy ="
+// Return remaining items
+println ""
+println "Remaining top-level items:"
+jenkins.items.each { item ->
+    println "  - ${item.name}"
+}
+'
+
+# Execute via Script Console API
+echo "Executing cleanup script..."
+RESULT=$(curl -s -u "${JENKINS_USER}:${JENKINS_PASS}" \
+  -d "script=$(echo "$SCRIPT" | jq -sRr @uri)" \
+  "${JENKINS_URL}/scriptText")
 
 echo ""
-echo "Cleanup complete! The old jobs should now be removed."
-echo "Refresh your Jenkins UI to see the changes."
+echo "Result from Jenkins:"
+echo "$RESULT"
+echo ""
+echo "Cleanup complete! Refresh your Jenkins UI to see the changes."
