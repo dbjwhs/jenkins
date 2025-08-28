@@ -2,6 +2,10 @@
 
 This repository contains a complete Jenkins setup using Docker and JCasC (Jenkins Configuration as Code) optimized for M2 Mac mini.
 
+**IMPORTANT**: 
+- Jenkins runs on a REMOTE M2 Mac mini server, not locally. Changes to configuration files need to be pulled on the remote machine and Jenkins restarted there.
+- ALL changes must be submitted via Pull Request for review and approval. Never commit directly to main branch.
+
 ## Overview
 
 - **Jenkins LTS** running in Docker container
