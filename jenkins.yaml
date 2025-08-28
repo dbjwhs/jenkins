@@ -94,14 +94,12 @@ credentials:
           - usernamePassword:
               scope: GLOBAL
               id: "github-creds"
-          - basicSSHUserPrivateKey:
+          - usernamePassword:
               scope: GLOBAL
               id: "mac-mini-ssh"
               username: "dbjones"
-              description: "SSH private key for Mac mini M2 agent (dbjones user)"
-              privateKeySource:
-                fileOnMaster:
-                  privateKeyFile: "/var/jenkins_home/.ssh/jenkins_agent_key"
+              password: "temp-password-change-in-ui"
+              description: "Temporary credential - update with SSH key in Jenkins UI"
 
 jenkins:
   nodes:
