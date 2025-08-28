@@ -19,6 +19,12 @@ jenkins:
     enabled: true
 
 security:
+  # Option 1: Disable sandbox for Job DSL scripts (recommended for development)
+  # This allows Job DSL scripts to run without script approval
+  jobDsl:
+    scriptSecurity:
+      sandbox: false
+      
   scriptApproval:
     approvedSignatures:
       # Basic Groovy/Java methods
@@ -63,6 +69,19 @@ security:
       - "staticMethod org.codehaus.groovy.runtime.DefaultGroovyMethods collect java.lang.Object groovy.lang.Closure"
       - "staticMethod org.codehaus.groovy.runtime.DefaultGroovyMethods each java.lang.Object groovy.lang.Closure"
       - "staticMethod org.codehaus.groovy.runtime.DefaultGroovyMethods findAll java.lang.Object groovy.lang.Closure"
+      
+      # Job DSL specific signatures (prevents most DSL approval issues)
+      - "new groovy.util.ConfigSlurper"
+      - "staticMethod jenkins.model.Jenkins getInstance"
+      - "method jenkins.model.Jenkins getItem java.lang.String"
+      - "method hudson.model.ItemGroup getItem java.lang.String"
+      - "staticMethod hudson.model.Hudson getInstance"
+      - "method hudson.model.Item getName"
+      - "method hudson.model.Item getFullName"
+      - "new java.util.HashMap"
+      - "new java.util.ArrayList"
+      - "staticMethod org.codehaus.groovy.runtime.DefaultGroovyMethods leftShift java.util.Map java.util.Map$Entry"
+      - "method groovy.util.ConfigObject getProperty java.lang.String"
 
 credentials:
   system:
