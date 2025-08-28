@@ -97,14 +97,11 @@ credentials:
           - basicSSHUserPrivateKey:
               scope: GLOBAL
               id: "mac-mini-ssh"
-              username: "jenkins"
-              description: "SSH private key for Mac mini M2 agent"
+              username: "dbjones"
+              description: "SSH private key for Mac mini M2 agent (dbjones user)"
               privateKeySource:
-                directEntry:
-                  privateKey: |
-                    # This will be replaced with the actual private key after running setup-ssh-credentials.sh
-                    # The private key should be placed at: /var/jenkins_home/.ssh/jenkins_agent_key
-                    # Use the Jenkins UI to update this credential with the actual key content
+                fileOnMaster:
+                  privateKeyFile: "/var/jenkins_home/.ssh/jenkins_agent_key"
 
 jenkins:
   nodes:
@@ -113,7 +110,7 @@ jenkins:
         labelString: "macos m2 arm64 native"
         mode: NORMAL
         numExecutors: 4
-        remoteFS: "/Users/jenkins/agent"
+        remoteFS: "/Users/dbjones/jenkins-agent"
         launcher:
           ssh:
             host: "host.docker.internal"
