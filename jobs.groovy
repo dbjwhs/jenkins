@@ -91,6 +91,9 @@ pipelineJob('cpp-projects/inference-systems-lab-build') {
         booleanParam('ENABLE_SANITIZERS', false, 'Enable AddressSanitizer and UBSan')
         booleanParam('CLEAN_BUILD', false, 'Clean build directory before building')
     }
+    triggers {
+        cron('5 * * * *')  // Run at 5 minutes past every hour
+    }
     definition {
         cps {
             script('''
@@ -277,6 +280,9 @@ pipelineJob('cpp-projects/cql-build') {
         choiceParam('BUILD_TYPE', ['Release', 'Debug', 'RelWithDebInfo'], 'CMake build type')
         booleanParam('RUN_TESTS', true, 'Run tests after build')
         booleanParam('CLEAN_BUILD', false, 'Clean build directory before building')
+    }
+    triggers {
+        cron('25 * * * *')  // Run at 25 minutes past every hour
     }
     definition {
         cps {
@@ -465,6 +471,9 @@ pipelineJob('cpp-projects/cpp-snippets-build') {
         stringParam('GIT_REPO_URL', 'https://github.com/dbjwhs/cpp-snippets.git', 'Git repository URL')
         stringParam('BRANCH', 'main', 'Branch to checkout')
         booleanParam('CLEAN_WORKSPACE', true, 'Clean workspace before build')
+    }
+    triggers {
+        cron('45 * * * *')  // Run at 45 minutes past every hour
     }
     definition {
         cps {
