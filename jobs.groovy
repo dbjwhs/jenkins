@@ -218,7 +218,7 @@ pipelineJob('cpp-projects/inference-systems-lab-build') {
                             post {
                                 always {
                                     // Publish test results if available
-                                    publishTestResults testResultsPattern: '**/build-*/Testing/**/*.xml', allowEmptyResults: true
+                                    junit testResults: '**/build-*/Testing/**/*.xml', allowEmptyResults: true
                                 }
                             }
                         }

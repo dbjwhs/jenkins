@@ -18,3 +18,4 @@ build-timeout:latest
 timestamper:latest
 ws-cleanup:latest
 dark-theme:latest
+junit:latest
