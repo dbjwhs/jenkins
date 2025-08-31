@@ -391,13 +391,19 @@ pipelineJob('cpp-projects/cql-build') {
                                             echo "Found cql_test executable, running tests..."
                                             
                                             // Use Anthropic API key for live tests on main branch only
+                                            echo "DEBUG: Current branch name: '${env.BRANCH_NAME}'"
+                                            echo "DEBUG: Branch comparison result: ${env.BRANCH_NAME == 'main'}"
+                                            echo "DEBUG: All environment variables:"
+                                            sh 'env | sort'
+                                            
                                             if (env.BRANCH_NAME == 'main') {
                                                 echo "Running with live API integration on main branch"
                                                 withCredentials([string(credentialsId: 'anthropic-api-key', variable: 'ANTHROPIC_API_KEY')]) {
+                                                    echo "DEBUG: API key credential loaded, length: ${ANTHROPIC_API_KEY?.length()}"
                                                     sh './cql_test --gtest_output=xml:test_results.xml'
                                                 }
                                             } else {
-                                                echo "Running without live API integration (non-main branch)"
+                                                echo "Running without live API integration (non-main branch: '${env.BRANCH_NAME}')"
                                                 sh './cql_test --gtest_output=xml:test_results.xml || echo "Some tests may have failed"'
                                             }
                                         } else {
