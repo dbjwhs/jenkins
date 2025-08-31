@@ -391,7 +391,7 @@ pipelineJob('cpp-projects/cql-build') {
                                             echo "Found cql_test executable, running tests..."
                                             
                                             // Use Anthropic API key for live tests on main branch only
-                                            if (env.BRANCH_NAME == 'main') {
+                                            if (params.BRANCH == 'main') {
                                                 echo "Running with live API integration on main branch"
                                                 withCredentials([string(credentialsId: 'anthropic-api-key', variable: 'ANTHROPIC_API_KEY')]) {
                                                     sh './cql_test --gtest_output=xml:test_results.xml'
