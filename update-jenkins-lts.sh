@@ -110,7 +110,7 @@ MAX_RETRIES=12
 while [ $RETRY_COUNT -lt $MAX_RETRIES ]; do
     if curl -f -s http://localhost:8080/login > /dev/null; then
         echo "✅ Jenkins is healthy!"
-        NEW_VERSION=$(curl -s http://localhost:8080/api/json 2>/dev/null | jq -r '.version // "unknown"' 2>/dev/null || echo "2.516.2")
+        NEW_VERSION=$(curl -s http://localhost:8080/api/json 2>/dev/null | jq -r '.version // "unknown"' 2>/dev/null || echo "$LATEST_LTS")
         echo "🎉 Successfully updated to Jenkins version: $NEW_VERSION"
         
         # Restore .env file if it was backed up
