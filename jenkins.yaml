@@ -102,6 +102,11 @@ credentials:
               privateKeySource:
                 directEntry:
                   privateKey: ${MAC_MINI_SSH_KEY}
+          - string:
+              scope: GLOBAL
+              id: "anthropic-api-key"
+              description: "Anthropic API key for Claude integration"
+              secret: ${ANTHROPIC_API_KEY}
 
 jenkins:
   nodes:

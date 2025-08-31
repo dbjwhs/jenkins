@@ -386,34 +386,42 @@ pipelineJob('cpp-projects/cql-build') {
                             steps {
                                 script {
                                     dir('build') {
-                                        sh """
-                                            echo "Running CQL GoogleTest suite..."
+                                        // Check if cql_test executable exists
+                                        if (fileExists('cql_test')) {
+                                            echo "Found cql_test executable, running tests..."
                                             
-                                            # Run the test executable
-                                            if [ -f cql_test ]; then
-                                                echo "Found cql_test executable, running tests..."
-                                                ./cql_test --gtest_output=xml:test_results.xml || echo "Some tests may have failed"
-                                            else
-                                                echo "cql_test executable not found, trying alternative methods..."
-                                                # Try using CTest
-                                                if [ -f CTestTestfile.cmake ]; then
-                                                    echo "Running tests with CTest..."
-                                                    ctest --output-on-failure --no-compress-output -T Test || echo "CTest completed with some failures"
-                                                fi
-                                            fi
-                                            
-                                            # Also test the main executable
-                                            if [ -f cql ]; then
-                                                echo "Testing main CQL executable..."
+                                            // Use Anthropic API key for live tests on main branch only
+                                            if (env.BRANCH_NAME == 'main') {
+                                                echo "Running with live API integration on main branch"
+                                                withCredentials([string(credentialsId: 'anthropic-api-key', variable: 'ANTHROPIC_API_KEY')]) {
+                                                    sh './cql_test --gtest_output=xml:test_results.xml'
+                                                }
+                                            } else {
+                                                echo "Running without live API integration (non-main branch)"
+                                                sh './cql_test --gtest_output=xml:test_results.xml || echo "Some tests may have failed"'
+                                            }
+                                        } else {
+                                            echo "cql_test executable not found, trying alternative methods..."
+                                            // Try using CTest
+                                            if (fileExists('CTestTestfile.cmake')) {
+                                                echo "Running tests with CTest..."
+                                                sh 'ctest --output-on-failure --no-compress-output -T Test || echo "CTest completed with some failures"'
+                                            }
+                                        }
+                                        
+                                        // Also test the main executable
+                                        if (fileExists('cql')) {
+                                            echo "Testing main CQL executable..."
+                                            sh '''
                                                 ./cql --help || echo "CQL help command completed"
                                                 ./cql --version || echo "CQL version command completed"
-                                            else
-                                                echo "Main cql executable not found"
-                                            fi
-                                            
-                                            echo "Listing build directory contents:"
-                                            ls -la
-                                        """
+                                            '''
+                                        } else {
+                                            echo "Main cql executable not found"
+                                        }
+                                        
+                                        echo "Listing build directory contents:"
+                                        sh 'ls -la'
                                     }
                                 }
                             }
