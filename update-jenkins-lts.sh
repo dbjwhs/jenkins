@@ -41,6 +41,16 @@ echo "💾 Creating backup..."
 BACKUP_DIR="backup-$(date +%Y%m%d-%H%M%S)"
 mkdir -p "$BACKUP_DIR"
 
+# Backup .env file if it exists (critical for Mac mini agent)
+if [ -f ".env" ]; then
+    echo "🔑 Backing up .env file..."
+    cp .env "$BACKUP_DIR/.env.backup"
+    echo "✅ .env backed up to $BACKUP_DIR/.env.backup"
+else
+    echo "⚠️  No .env file found - Mac mini agent will not work after update"
+    echo "💡 You'll need to recreate .env with MAC_MINI_SSH_KEY after update"
+fi
+
 # Check if Jenkins is running before attempting backup
 if docker-compose ps | grep -q "jenkins.*Up"; then
     echo "⏸️  Stopping Jenkins for backup..."
@@ -89,6 +99,13 @@ while [ $RETRY_COUNT -lt $MAX_RETRIES ]; do
         echo "✅ Jenkins is healthy!"
         NEW_VERSION=$(curl -s http://localhost:8080/api/json | jq -r '.version // "unknown"')
         echo "🎉 Successfully updated to Jenkins version: $NEW_VERSION"
+        
+        # Restore .env file if it was backed up
+        if [ -f "$BACKUP_DIR/.env.backup" ]; then
+            echo "🔑 Restoring .env file..."
+            cp "$BACKUP_DIR/.env.backup" .env
+            echo "✅ .env file restored"
+        fi
         
         # Cleanup backup files
         rm -f Dockerfile.bak
