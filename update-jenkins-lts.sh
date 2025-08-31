@@ -7,6 +7,19 @@ set -e
 echo "🚀 Jenkins LTS Update Script"
 echo "============================"
 
+# Unlock macOS keychain for Docker operations (required on macOS for Docker authentication)
+if [[ "$OSTYPE" == "darwin"* ]]; then
+    echo "🔑 Unlocking macOS keychain for Docker operations..."
+    if security -v unlock-keychain ~/Library/Keychains/login.keychain-db 2>/dev/null; then
+        echo "✅ Keychain unlocked successfully"
+    else
+        echo "⚠️  Could not unlock keychain automatically"
+        echo "💡 Please run: security -v unlock-keychain ~/Library/Keychains/login.keychain-db"
+        echo "📋 Then rerun this script"
+        exit 1
+    fi
+fi
+
 # Get latest LTS version
 echo "📡 Fetching latest Jenkins LTS version..."
 LATEST_LTS=$(curl -sL https://updates.jenkins.io/stable/latestCore.txt | tr -d '\n\r')
