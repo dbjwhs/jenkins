@@ -412,10 +412,8 @@ pipelineJob('cpp-projects/cql-build') {
                                         // Also test the main executable
                                         if (fileExists('cql')) {
                                             echo "Testing main CQL executable..."
-                                            sh '''
-                                                ./cql --help || echo "CQL help command completed"
-                                                ./cql --version || echo "CQL version command completed"
-                                            '''
+                                            sh "./cql --help || echo 'CQL help command completed'"
+                                            sh "./cql --version || echo 'CQL version command completed'"
                                         } else {
                                             echo "Main cql executable not found"
                                         }
