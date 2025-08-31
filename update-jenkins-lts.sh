@@ -9,23 +9,29 @@ echo "============================"
 
 # Get latest LTS version
 echo "📡 Fetching latest Jenkins LTS version..."
-LATEST_LTS=$(curl -s https://api.github.com/repos/jenkinsci/jenkins/releases | \
-    jq -r '.[] | select(.tag_name | contains("lts")) | .tag_name' | \
-    head -1 | \
-    sed 's/jenkins-//')
+LATEST_LTS=$(curl -sL https://updates.jenkins.io/stable/latestCore.txt | tr -d '\n\r')
 
 if [ -z "$LATEST_LTS" ]; then
     echo "❌ Failed to fetch latest LTS version"
     exit 1
 fi
 
+# Validate version format (should be like 2.516.2)
+if ! echo "$LATEST_LTS" | grep -qE '^[0-9]+\.[0-9]+\.[0-9]+$'; then
+    echo "❌ Invalid version format received: $LATEST_LTS"
+    exit 1
+fi
+
 echo "📦 Latest LTS version: $LATEST_LTS"
 
 # Get current version from Dockerfile
-CURRENT_VERSION=$(grep 'FROM jenkins/jenkins:' Dockerfile | cut -d':' -f3 | tr -d '\n\r')
-echo "📋 Current version: ${CURRENT_VERSION:-lts}"
+CURRENT_VERSION=$(grep 'FROM jenkins/jenkins:' Dockerfile | cut -d':' -f3 | tr -d '\n\r' | sed 's/[[:space:]]*$//')
+echo "📋 Current version in Dockerfile: ${CURRENT_VERSION:-lts}"
 
-if [ "$CURRENT_VERSION" = "$LATEST_LTS" ]; then
+# If using 'lts' tag, we should update to specific version for better control
+if [ "$CURRENT_VERSION" = "lts" ]; then
+    echo "📌 Currently using 'lts' tag - will pin to specific version: $LATEST_LTS"
+elif [ "$CURRENT_VERSION" = "$LATEST_LTS" ]; then
     echo "✅ Already running latest LTS version: $LATEST_LTS"
     exit 0
 fi
@@ -34,10 +40,30 @@ fi
 echo "💾 Creating backup..."
 BACKUP_DIR="backup-$(date +%Y%m%d-%H%M%S)"
 mkdir -p "$BACKUP_DIR"
-docker-compose down
-docker volume create jenkins_backup
-docker run --rm -v jenkins_home:/source -v jenkins_backup:/backup alpine tar czf /backup/jenkins-backup.tar.gz -C /source .
-echo "✅ Backup created in volume: jenkins_backup"
+
+# Check if Jenkins is running before attempting backup
+if docker-compose ps | grep -q "jenkins.*Up"; then
+    echo "⏸️  Stopping Jenkins for backup..."
+    docker-compose down
+fi
+
+# Try to create backup, but don't fail if Docker auth issues
+echo "📦 Attempting to backup Jenkins data..."
+if docker volume ls | grep -q "jenkins_home"; then
+    # Create backup volume if it doesn't exist
+    docker volume create jenkins_backup 2>/dev/null || true
+    
+    # Try to backup, but continue if it fails (e.g., due to keychain issues)
+    if docker run --rm -v jenkins_home:/source -v jenkins_backup:/backup alpine:latest tar czf /backup/jenkins-backup.tar.gz -C /source . 2>/dev/null; then
+        echo "✅ Backup created in volume: jenkins_backup"
+    else
+        echo "⚠️  Could not create Docker volume backup (keychain/auth issue)"
+        echo "💡 Tip: Run 'security -v unlock-keychain ~/Library/Keychains/login.keychain-db' if on macOS"
+        echo "📝 Continuing without backup - Dockerfile.bak will be available for rollback"
+    fi
+else
+    echo "ℹ️  No existing Jenkins volume found, skipping backup"
+fi
 
 # Update Dockerfile
 echo "📝 Updating Dockerfile to version $LATEST_LTS..."
