@@ -157,10 +157,17 @@ pipelineJob('cpp-projects/inference-systems-lab-build') {
                             }
                             steps {
                                 script {
+                                    def buildDir = "build-${params.BUILD_TYPE.toLowerCase()}"
+                                    
                                     // Check if python_tool directory exists
                                     if (fileExists('python_tool/run_tests.py')) {
                                         echo "Running Python tests..."
+                                        echo "Build directory: ${buildDir}"
+                                        
                                         sh """
+                                            # Create symlink so Python script can find build directory
+                                            ln -sf ${buildDir} build
+                                            
                                             cd python_tool
                                             python3 ./run_tests.py --verbose
                                         """
