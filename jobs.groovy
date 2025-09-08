@@ -151,6 +151,26 @@ pipelineJob('cpp-projects/inference-systems-lab-build') {
                             }
                         }
                         
+                        stage('Run Python Tests') {
+                            when {
+                                expression { params.RUN_TESTS == true }
+                            }
+                            steps {
+                                script {
+                                    // Check if python_tool directory exists
+                                    if (fileExists('python_tool/run_tests.py')) {
+                                        echo "Running Python tests..."
+                                        sh """
+                                            cd python_tool
+                                            python3 ./run_tests.py --verbose
+                                        """
+                                    } else {
+                                        echo "python_tool/run_tests.py not found, skipping Python tests"
+                                    }
+                                }
+                            }
+                        }
+                        
                         stage('Archive Artifacts') {
                             steps {
                                 script {
