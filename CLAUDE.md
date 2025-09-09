@@ -34,6 +34,15 @@ docker-compose down
 ./update-jenkins-lts.sh
 ```
 
+### Update All Plugins
+```bash
+# Method 1: Rebuild with fresh plugins (Recommended)
+./update-plugins-rebuild.sh
+
+# Method 2: Live update via Jenkins API
+./update-plugins.sh
+```
+
 ### Check Logs
 ```bash
 docker-compose logs -f jenkins
