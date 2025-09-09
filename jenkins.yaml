@@ -148,11 +148,6 @@ appearance:
     theme: "darkSystem"
 
 unclassified:
-  # Disable script security for trusted environment
-  scriptSecurity:
-    # Turn off sandbox for all pipeline scripts
-    enableSandbox: false
-  
-  # Global Pipeline Libraries configuration
+  # Global Pipeline Libraries configuration (script security will be handled by init script)
   globalLibraries:
     libraries: []
