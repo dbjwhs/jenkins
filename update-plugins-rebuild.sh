@@ -21,6 +21,20 @@ print_color() {
     echo -e "${color}${message}${NC}"
 }
 
+# Unlock macOS keychain for Docker operations (required on macOS for Docker authentication)
+if [[ "$OSTYPE" == "darwin"* ]]; then
+    print_color $BLUE "🔑 Unlocking macOS keychain for Docker operations..."
+    if security -v unlock-keychain ~/Library/Keychains/login.keychain-db 2>/dev/null; then
+        print_color $GREEN "✅ Keychain unlocked successfully"
+    else
+        print_color $YELLOW "⚠️  Could not unlock keychain automatically"
+        print_color $BLUE "💡 Please run this command first:"
+        echo "   security -v unlock-keychain ~/Library/Keychains/login.keychain-db"
+        print_color $BLUE "📋 Then rerun this script"
+        exit 1
+    fi
+fi
+
 # Check if plugins.txt exists
 if [ ! -f "plugins.txt" ]; then
     print_color $RED "❌ plugins.txt not found"

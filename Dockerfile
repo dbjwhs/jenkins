@@ -28,6 +28,8 @@ USER jenkins
 COPY plugins.txt /usr/share/jenkins/ref/plugins.txt
 # Copy the jenkins.yaml configuration file
 COPY jenkins.yaml /var/jenkins_home/jenkins.yaml
+# Copy init script to disable script approval
+COPY init-disable-script-approval.groovy /usr/share/jenkins/ref/init.groovy.d/
 
 # Install plugins
 RUN jenkins-plugin-cli -f /usr/share/jenkins/ref/plugins.txt

@@ -1,5 +1,5 @@
 jenkins:
-  systemMessage: "Jenkins configured using JCasC"
+  systemMessage: "Jenkins configured using JCasC - Script approval disabled for trusted environment"
   noUsageStatistics: true
   primaryView:
     all:
@@ -19,9 +19,9 @@ jenkins:
     enabled: true
 
 security:
-  # Script approval configuration
-  # For Job DSL, we'll handle sandbox settings in the seed job itself
+  # Disable script approval for trusted environment
   scriptApproval:
+    # Disable script approval entirely for this protected machine
     approvedSignatures:
       # Basic Groovy/Java methods
       - "method java.lang.String toLowerCase"
@@ -146,3 +146,13 @@ appearance:
   themeManager:
     disableUserThemes: false
     theme: "darkSystem"
+
+unclassified:
+  # Disable script security for trusted environment
+  scriptSecurity:
+    # Turn off sandbox for all pipeline scripts
+    enableSandbox: false
+  
+  # Global Pipeline Libraries configuration
+  globalLibraries:
+    libraries: []
