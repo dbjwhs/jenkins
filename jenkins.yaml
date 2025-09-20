@@ -94,6 +94,9 @@ credentials:
           - usernamePassword:
               scope: GLOBAL
               id: "github-creds"
+              username: "dbjones"
+              password: ${GITHUB_TOKEN}
+              description: "GitHub Personal Access Token"
           - basicSSHUserPrivateKey:
               scope: GLOBAL
               id: "mac-mini-ssh"
